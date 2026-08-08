@@ -1,4 +1,4 @@
-name: Deploy to Vercel
+name: CI
 
 on:
   pull_request:
@@ -7,12 +7,12 @@ on:
     branches: [main]
 
 concurrency:
-  group: vercel-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  deploy:
-    name: Deploy (${{ github.event_name == 'push' && 'production' || 'preview' }})
+  build:
+    name: Install & Build
     runs-on: ubuntu-latest
     timeout-minutes: 25
 
@@ -34,32 +34,16 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Typecheck
+        run: pnpm typecheck
+
       - name: Build
         run: pnpm build
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          NEXT_PUBLIC_APP_URL: ${{ github.event_name == 'pull_request' && 'https://' || secrets.NEXT_PUBLIC_APP_URL }}
-          NEXT_PUBLIC_SITE_URL: ${{ vars.SITE_URL_PREVIEW }}
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+          NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
           PUBLIC_SITE_JWT_SECRET: ${{ secrets.PUBLIC_SITE_JWT_SECRET }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-
-      - name: Deploy to Vercel (production)
-        if: github.event_name == 'push' && github.ref_name == 'main'
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
-
-      - name: Deploy to Vercel (preview)
-        if: github.event_name == 'pull_request'
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          github-comment: true
