@@ -7,13 +7,15 @@ import { APP_NAME, APP_DESCRIPTION } from '@/lib/constants';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL?.trim() || 'http://localhost:3000';
+
 export const metadata: Metadata = {
   title: {
     default: `${APP_NAME} - Export Management Platform for Indian Exporters`,
     template: `%s | ${APP_NAME}`
   },
   description: APP_DESCRIPTION,
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000')
+  metadataBase: new URL(APP_URL)
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
