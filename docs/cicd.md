@@ -22,7 +22,7 @@ Pipeline is fully defined in `.github/workflows/`:
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-side service role key |
 | `PUBLIC_SITE_JWT_SECRET` | Long random string for tenant site tokens |
 | `OPENAI_API_KEY` | Required at build time by `/api/ai/*` routes |
-| `SUPABASE_DB_URL` | **Production** postgres connection string — must use the **Session pooler ("Session-only", port 5432)** OR direct connection. **Not** the Transaction pooler (port 6543) — running DDL (`CREATE TABLE`/`EXTENSION`) through the transaction pooler fails. |
+| `SUPABASE_DB_URL` | **Production** postgres connection string — MUST use the **Session pooler ("Session", port 5432)** with the `*.pooler.supabase.com` host. Do **not** use the Direct host (`db.<ref>.supabase.co`) — it is IPv6-only on the free plan, and GitHub Actions runners have no IPv6 route, so migrations fail with "Network is unreachable". Also **not** the Transaction pooler (port 6543) — DDL (`CREATE TABLE`/`EXTENSION`) fails there. |
 | `SUPABASE_PREVIEW_DB_URL` | **Preview/staging** postgres connection string — same Session-pooler requirement |
 | `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` | Only when deploying via GitHub Actions (alternative to Vercel's native Git integration) |
 

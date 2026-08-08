@@ -45,17 +45,28 @@ jobs:
         shell: bash
         run: |
           if [ "${{ github.ref_name }}" = "preview" ] || [ "${{ inputs.target }}" = "preview" ]; then
-            echo "db_url=${{ secrets.SUPABASE_PREVIEW_DB_URL }}" >> "$GITHUB_OUTPUT"
+            DB_URL="${{ secrets.SUPABASE_PREVIEW_DB_URL }}"
             echo "label=preview" >> "$GITHUB_OUTPUT"
           else
-            echo "db_url=${{ secrets.SUPABASE_DB_URL }}" >> "$GITHUB_OUTPUT"
+            DB_URL="${{ secrets.SUPABASE_DB_URL }}"
             echo "label=production" >> "$GITHUB_OUTPUT"
           fi
+          echo "db_url=$DB_URL" >> "$GITHUB_OUTPUT"
+          # GitHub Actions runners may not have IPv6 routes; resolve to IPv4
+          HOST=$(printf '%s' "$DB_URL" | sed -E 's#.*@([^:/]+):.*#\1#')
+          IPV4=""
+          if [ -n "$HOST" ]; then
+            IPV4=$(getent ahostsv4 "$HOST" | awk '{ print $1; exit }' 2>/dev/null || true)
+          fi
+          echo "db_host=$HOST" >> "$GITHUB_OUTPUT"
+          echo "db_ipv4=$IPV4" >> "$GITHUB_OUTPUT"
 
       - name: Run migrations
         shell: bash
         env:
           DATABASE_URL: ${{ steps.target.outputs.db_url }}
+          DB_HOST: ${{ steps.target.outputs.db_host }}
+          DB_IPV4: ${{ steps.target.outputs.db_ipv4 }}
         run: |
           if [ -z "$DATABASE_URL" ]; then
             echo "::error::DATABASE_URL secret is not configured for ${{ steps.target.outputs.label }}"
@@ -63,6 +74,13 @@ jobs:
           fi
 
           DB="$DATABASE_URL"
+          # GitHub Actions runners frequently lack IPv6 routes to some Supabase hosts
+          if [ -n "$DB_HOST" ] && [ -n "$DB_IPV4" ]; then
+            DB=$(printf '%s' "$DB" | sed "s#@$DB_HOST:#@$DB_IPV4:#")
+            echo "Using IPv4 host $DB_IPV4 for ${{ steps.target.outputs.label }}"
+          else
+            echo "Could not resolve IPv4 for $DB_HOST; using hostname as-is"
+          fi
           case "$DB" in
             *sslmode=*) ;;
             *"?") DB="$DB&sslmode=require" ;;
@@ -83,9 +101,14 @@ jobs:
         shell: bash
         env:
           DATABASE_URL: ${{ steps.target.outputs.db_url }}
+          DB_HOST: ${{ steps.target.outputs.db_host }}
+          DB_IPV4: ${{ steps.target.outputs.db_ipv4 }}
         run: |
           if [ -n "$DATABASE_URL" ]; then
             DB="$DATABASE_URL"
+            if [ -n "$DB_HOST" ] && [ -n "$DB_IPV4" ]; then
+              DB=$(printf '%s' "$DB" | sed "s#@$DB_HOST:#@$DB_IPV4:#")
+            fi
             case "$DB" in
               *sslmode=*) ;;
               *"?") DB="$DB&sslmode=require" ;;
