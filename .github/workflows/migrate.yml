@@ -69,7 +69,7 @@ jobs:
             *) DB="$DB?sslmode=require" ;;
           esac
 
-for f in "$MIGRATIONS_DIR"/*.sql; do
+          for f in "$MIGRATIONS_DIR"/*.sql; do
             echo "Applying $(basename "$f") ..."
             if ! psql -v ON_ERROR_STOP=1 --echo-errors "$DB" -f "$f"; then
               echo "::error::Migration failed for ${{ steps.target.outputs.label }} in file: $(basename "$f")"
