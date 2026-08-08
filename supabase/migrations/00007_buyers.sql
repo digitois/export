@@ -29,7 +29,8 @@ create trigger trg_buyers_updated_at before update on public.buyers
 create index if not exists idx_buyers_org on public.buyers (organization_id);
 create index if not exists idx_buyers_org_country on public.buyers (organization_id, country);
 create index if not exists idx_buyers_org_email on public.buyers (organization_id, lower(email));
-create index if not exists idx_buyers_tags on public.buyers using gin (organization_id, tags);
+create index if not exists idx_buyers_tags on public.buyers using gin (tags);
+create index if not exists idx_buyers_org_tags on public.buyers (organization_id, tags);
 create index if not exists idx_buyers_created on public.buyers (organization_id, created_at desc);
 
 alter table public.buyers enable row level security;
