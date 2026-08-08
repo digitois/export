@@ -68,13 +68,13 @@ jobs:
           done
           echo "All migrations applied successfully."
 
-      - name: Seed demo data on preview only
-        if: steps.target.outputs.label == 'preview'
+      - name: Seed demo data
+        if: steps.target.outputs.label == 'preview' || github.event_name == 'workflow_dispatch'
         shell: bash
         env:
           DATABASE_URL: ${{ steps.target.outputs.db_url }}
         run: |
           if [ -n "$DATABASE_URL" ]; then
-            echo "Seeding preview database ..."
+            echo "Seeding database ..."
             psql -v ON_ERROR_STOP=1 --echo-errors "$DATABASE_URL" -f supabase/seed.sql
           fi
