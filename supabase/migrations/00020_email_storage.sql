@@ -30,6 +30,7 @@ values
 on conflict (id) do nothing;
 
 -- Documents bucket is private to org members
+drop policy if exists "documents_org_access" on storage.objects;
 create policy "documents_org_access" on storage.objects
   for all
   using (bucket_id = 'documents' and (storage.foldername(name))[1]::uuid in (
@@ -40,10 +41,12 @@ create policy "documents_org_access" on storage.objects
   ));
 
 -- Public buckets readable by everyone
+drop policy if exists "public_buckets_read" on storage.objects;
 create policy "public_buckets_read" on storage.objects
   for select
   using (bucket_id in ('company', 'products', 'blog', 'generated'));
 
+drop policy if exists "org_upload_public_buckets" on storage.objects;
 create policy "org_upload_public_buckets" on storage.objects
   for insert
   with check (bucket_id in ('company', 'products', 'blog', 'generated') and (
