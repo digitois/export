@@ -2,6 +2,16 @@
 -- Export OS - 00010: Document Management
 -- ------------------------------------------------------------------
 
+create table if not exists public.document_folders (
+  id uuid primary key default gen_random_uuid(),
+  organization_id uuid not null references public.organizations (id) on delete cascade,
+  parent_id uuid references public.document_folders (id) on delete cascade,
+  name text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_document_folders_org on public.document_folders (organization_id);
+
 create table if not exists public.documents (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations (id) on delete cascade,
@@ -26,16 +36,6 @@ create trigger trg_documents_updated_at before update on public.documents
 create index if not exists idx_documents_org on public.documents (organization_id);
 create index if not exists idx_documents_org_type on public.documents (organization_id, document_type);
 create index if not exists idx_documents_folder on public.documents (folder_id);
-
-create table if not exists public.document_folders (
-  id uuid primary key default gen_random_uuid(),
-  organization_id uuid not null references public.organizations (id) on delete cascade,
-  parent_id uuid references public.document_folders (id) on delete cascade,
-  name text not null,
-  created_at timestamptz not null default now()
-);
-
-create index if not exists idx_document_folders_org on public.document_folders (organization_id);
 
 create table if not exists public.document_versions (
   id uuid primary key default gen_random_uuid(),
