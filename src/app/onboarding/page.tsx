@@ -46,8 +46,7 @@ export default function OnboardingPage() {
         body: values
       });
       toast.success('Organization created!');
-      router.replace('/dashboard');
-      router.refresh();
+      window.location.assign('/dashboard');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to create organization');
       setLoading(false);
