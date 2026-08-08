@@ -285,13 +285,18 @@ export const emailContactSchema = z.object({
 });
 
 export const websiteSettingsSchema = z.object({
-  theme: z.enum(['modern', 'classic', 'minimal', 'bold']).default('modern'),
+  theme: z.enum(['modern', 'classic', 'minimal', 'bold', 'editorial', 'coastal', 'sunset', 'forest']).default('modern'),
   primaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Use a hex color').default('#0f172a'),
   accentColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Use a hex color').default('#0284c7'),
   heroHeading: z.string().optional().nullable(),
   heroSubheading: z.string().optional().nullable(),
+  heroEyebrow: z.string().optional().nullable(),
   heroImageUrl: z.string().url().optional().or(z.literal('')).nullable(),
   announcementBar: z.string().optional().nullable(),
+  ctaLabel: z.string().optional().nullable(),
+  enableProductSection: z.boolean().optional(),
+  enableAboutSection: z.boolean().optional(),
+  enableBlogSection: z.boolean().optional(),
   showInquiryForm: z.boolean().default(true),
   contactEmail: z.string().email().optional().or(z.literal('')).nullable(),
   contactPhone: z.string().optional().nullable(),

@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { camelToSnakeObject, snakeToCamelObject } from '@/lib/utils';
 
 export async function getWebsiteSettings(supabase: SupabaseClient, organizationId: string) {
   const { data, error } = await supabase
@@ -6,13 +7,15 @@ export async function getWebsiteSettings(supabase: SupabaseClient, organizationI
     .select('*')
     .eq('organization_id', organizationId)
     .maybeSingle();
-  return { data, error };
+  const normalized = data ? snakeToCamelObject(data as Record<string, unknown>) : null;
+  return { data: normalized, error };
 }
 
 export async function upsertWebsiteSettings(supabase: SupabaseClient, organizationId: string, payload: Record<string, unknown>) {
+  const body = camelToSnakeObject(payload);
   const { data, error } = await supabase
     .from('website_settings')
-    .upsert({ organization_id: organizationId, ...payload }, { onConflict: 'organization_id' })
+    .upsert({ organization_id: organizationId, ...body }, { onConflict: 'organization_id' })
     .select()
     .single();
   return { data, error };

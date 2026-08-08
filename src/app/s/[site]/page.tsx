@@ -24,29 +24,35 @@ export default async function SiteHomePage({ params }: { params: Promise<{ site:
           // eslint-disable-next-line @next/next/no-img-element
           <img src={heroBg} alt="" className="absolute inset-0 h-full w-full object-cover" />
         ) : (
-          <div className="absolute inset-0" style={{ background: 'var(--site-primary)' }} />
+          <div className="absolute inset-0" style={{ background: 'var(--site-hero-bg, var(--site-primary))' }} />
         )}
         <div className="absolute inset-0 bg-zinc-900/70" />
         <div className="relative mx-auto max-w-6xl px-4 py-24 text-center text-white md:py-32">
-          <h1 className="mx-auto max-w-3xl text-4xl font-bold leading-tight md:text-5xl">
+          {siteData.hero_eyebrow && (
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-300">{siteData.hero_eyebrow}</p>
+          )}
+          <h1 className="mx-auto max-w-3xl text-4xl font-bold leading-tight md:text-5xl" style={{ fontFamily: 'var(--site-heading-font)' }}>
             {siteData.hero_heading ?? `${siteData.company_name} — Global Exporter`}
           </h1>
           {siteData.hero_subheading && (
-            <p className="mx-auto mt-4 max-w-2xl text-lg text-zinc-200">{siteData.hero_subheading}</p>
+            <p className="mx-auto mt-4 max-w-2xl text-lg text-zinc-200" style={{ fontFamily: 'var(--site-body-font)' }}>
+              {siteData.hero_subheading}
+            </p>
           )}
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Link
               href={`${base}/products`}
-              className="rounded-full px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-              style={{ backgroundColor: 'var(--site-accent)' }}
+              className="px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+              style={{ backgroundColor: 'var(--site-accent)', borderRadius: 'var(--site-radius)' }}
             >
               Explore Products
             </Link>
             <Link
               href={`${base}/contact`}
-              className="rounded-full border border-white px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-zinc-900"
+              className="px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-zinc-900"
+              style={{ border: '1px solid rgb(255 255 255 / 0.6)', borderRadius: 'var(--site-radius)' }}
             >
-              Request a Quote
+              {siteData.cta_label ?? 'Request a Quote'}
             </Link>
           </div>
           {siteData.certifications && siteData.certifications.length > 0 && (
@@ -61,7 +67,7 @@ export default async function SiteHomePage({ params }: { params: Promise<{ site:
         </div>
       </section>
 
-      {products.length > 0 && (
+      {siteData.enable_product_section !== false && products.length > 0 && (
         <section className="mx-auto max-w-6xl px-4 py-16">
           <div className="mb-8 flex items-end justify-between">
             <div>
@@ -107,7 +113,7 @@ export default async function SiteHomePage({ params }: { params: Promise<{ site:
         </section>
       )}
 
-      {siteData.about && (
+      {siteData.enable_about_section !== false && siteData.about && (
         <section className="bg-zinc-50 py-16">
           <div className="mx-auto grid max-w-6xl gap-10 px-4 md:grid-cols-2">
             <div>
@@ -144,7 +150,7 @@ export default async function SiteHomePage({ params }: { params: Promise<{ site:
         </section>
       )}
 
-      {posts.length > 0 && (
+      {siteData.enable_blog_section !== false && posts.length > 0 && (
         <section className="mx-auto max-w-6xl px-4 py-16">
           <div className="mb-8 flex items-end justify-between">
             <div>

@@ -19,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { UploadButton } from '@/components/upload-input';
 import { Spinner } from '@/components/loading';
+import { HsnAutocomplete } from '@/components/hsn-autocomplete';
 
 type ProductInput = z.infer<typeof productSchema>;
 
@@ -195,7 +196,11 @@ export function ProductForm({ productId }: ProductFormProps) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="hsnCode">HSN Code</Label>
-            <Input id="hsnCode" placeholder="e.g. 09103010" {...form.register('hsnCode')} />
+            <HsnAutocomplete
+              value={form.watch('hsnCode') ?? ''}
+              onChange={(v) => form.setValue('hsnCode', v || null)}
+              placeholder="Search name or type code, e.g. 09103010"
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="price">Base Price</Label>

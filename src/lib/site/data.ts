@@ -14,6 +14,11 @@ export interface PublicSite {
   accent_color: string | null;
   hero_heading: string | null;
   hero_subheading: string | null;
+  hero_eyebrow: string | null;
+  cta_label: string | null;
+  enable_product_section: boolean;
+  enable_about_section: boolean;
+  enable_blog_section: boolean;
   hero_image_url: string | null;
   announcement_bar: string | null;
   show_inquiry_form: boolean;
