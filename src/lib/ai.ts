@@ -21,8 +21,18 @@ function getProvider(): AIProviderName {
   return p === 'anthropic' ? 'anthropic' : 'openai';
 }
 
-const openaiClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const anthropicClient = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+let openaiClient: OpenAI | null = null;
+let anthropicClient: Anthropic | null = null;
+
+function getOpenAI() {
+  if (!openaiClient) openaiClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  return openaiClient;
+}
+
+function getAnthropic() {
+  if (!anthropicClient) anthropicClient = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  return anthropicClient;
+}
 
 const SYSTEM_PROMPT = [
   'You are Export OS, an expert AI assistant for Indian exporters.',
@@ -38,7 +48,7 @@ export async function completeChat(messages: ChatMessage[]): Promise<AICompletio
   const fullMessages: ChatMessage[] = [{ role: 'system', content: SYSTEM_PROMPT }, ...messages];
 
   if (provider === 'anthropic') {
-    const res = await anthropicClient.messages.create({
+    const res = await getAnthropic().messages.create({
       model: process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-4-20250514',
       max_tokens: 4096,
       system: SYSTEM_PROMPT,
@@ -58,7 +68,7 @@ export async function completeChat(messages: ChatMessage[]): Promise<AICompletio
     };
   }
 
-  const res = await openaiClient.chat.completions.create({
+  const res = await getOpenAI().chat.completions.create({
     model: process.env.OPENAI_MODEL ?? 'gpt-4o-mini',
     messages: fullMessages.map((m) => ({
       role: m.role === 'system' ? 'system' : m.role === 'assistant' ? 'assistant' : 'user',
