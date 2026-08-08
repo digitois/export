@@ -62,9 +62,19 @@ jobs:
             exit 1
           fi
 
-          for f in "$MIGRATIONS_DIR"/*.sql; do
+          DB="$DATABASE_URL"
+          case "$DB" in
+            *sslmode=*) ;;
+            *"?") DB="$DB&sslmode=require" ;;
+            *) DB="$DB?sslmode=require" ;;
+          esac
+
+for f in "$MIGRATIONS_DIR"/*.sql; do
             echo "Applying $(basename "$f") ..."
-            psql -v ON_ERROR_STOP=1 --echo-errors "$DATABASE_URL" -f "$f"
+            if ! psql -v ON_ERROR_STOP=1 --echo-errors "$DB" -f "$f"; then
+              echo "::error::Migration failed for ${{ steps.target.outputs.label }} in file: $(basename "$f")"
+              exit 1
+            fi
           done
           echo "All migrations applied successfully."
 
@@ -75,6 +85,15 @@ jobs:
           DATABASE_URL: ${{ steps.target.outputs.db_url }}
         run: |
           if [ -n "$DATABASE_URL" ]; then
+            DB="$DATABASE_URL"
+            case "$DB" in
+              *sslmode=*) ;;
+              *"?") DB="$DB&sslmode=require" ;;
+              *) DB="$DB?sslmode=require" ;;
+            esac
             echo "Seeding database ..."
-            psql -v ON_ERROR_STOP=1 --echo-errors "$DATABASE_URL" -f supabase/seed.sql
+            if ! psql -v ON_ERROR_STOP=1 --echo-errors "$DB" -f supabase/seed.sql; then
+              echo "::error::Seed failed for ${{ steps.target.outputs.label }}"
+              exit 1
+            fi
           fi
