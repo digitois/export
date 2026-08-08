@@ -12,7 +12,7 @@ on:
       target:
         description: 'Target environment: main=production, preview=staging'
         required: true
-        default: 'preview'
+        default: 'main'
         type: choice
         options:
           - preview
