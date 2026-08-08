@@ -40,33 +40,44 @@ $$;
 -- Is the current user an active member of the organization?
 create or replace function public.is_org_member(p_org_id uuid)
 returns boolean
-language sql
+language plpgsql
 stable
 security definer
 set search_path = public
 as $$
+declare
+  v_exists boolean;
+begin
   select exists (
     select 1
     from public.organization_members m
     where m.organization_id = p_org_id
       and m.user_id = auth.uid()
       and m.status = 'active'
-  );
+  ) into v_exists;
+  return v_exists;
+end;
 $$;
 
 -- Role of the current user inside an organization
 create or replace function public.current_org_role(p_org_id uuid)
 returns public.member_role
-language sql
+language plpgsql
 stable
 security definer
 set search_path = public
 as $$
+declare
+  v_role public.member_role;
+begin
   select m.role
+  into v_role
   from public.organization_members m
   where m.organization_id = p_org_id
     and m.user_id = auth.uid()
     and m.status = 'active';
+  return v_role;
+end;
 $$;
 
 -- Is the current user at least the given role (owner > admin > manager > employee)
