@@ -2,7 +2,7 @@
 -- Export OS - 00012: Website Builder
 -- ------------------------------------------------------------------
 
-create table public.website_settings (
+create table if not exists public.website_settings (
   organization_id uuid primary key references public.organizations (id) on delete cascade,
   theme public.website_theme not null default 'modern',
   is_published boolean not null default false,
@@ -23,12 +23,13 @@ create table public.website_settings (
   updated_at timestamptz not null default now()
 );
 
+drop trigger if exists trg_website_settings_updated_at on public.website_settings;
 create trigger trg_website_settings_updated_at before update on public.website_settings
   for each row execute function set_updated_at();
 
-create index idx_website_settings_domain on public.website_settings (custom_domain);
+create index if not exists idx_website_settings_domain on public.website_settings (custom_domain);
 
-create table public.website_pages (
+create table if not exists public.website_pages (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations (id) on delete cascade,
   slug text not null,
@@ -44,13 +45,14 @@ create table public.website_pages (
   unique (organization_id, slug)
 );
 
+drop trigger if exists trg_website_pages_updated_at on public.website_pages;
 create trigger trg_website_pages_updated_at before update on public.website_pages
   for each row execute function set_updated_at();
 
-create index idx_website_pages_org on public.website_pages (organization_id);
+create index if not exists idx_website_pages_org on public.website_pages (organization_id);
 
 -- Website visitor analytics
-create table public.website_visits (
+create table if not exists public.website_visits (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations (id) on delete cascade,
   path text not null default '/',
@@ -61,38 +63,49 @@ create table public.website_visits (
   visited_at timestamptz not null default now()
 );
 
-create index idx_website_visits_org on public.website_visits (organization_id);
-create index idx_website_visits_org_date on public.website_visits (organization_id, visited_at);
+create index if not exists idx_website_visits_org on public.website_visits (organization_id);
+create index if not exists idx_website_visits_org_date on public.website_visits (organization_id, visited_at);
 
 alter table public.website_settings enable row level security;
 alter table public.website_pages enable row level security;
 alter table public.website_visits enable row level security;
 
+drop policy if exists website_settings_select_org on public.website_settings;
 create policy website_settings_select_org on public.website_settings
   for select using (public.is_org_member(organization_id));
+drop policy if exists website_settings_insert_org on public.website_settings;
 create policy website_settings_insert_org on public.website_settings
   for insert with check (public.is_org_member(organization_id));
+drop policy if exists website_settings_update_org on public.website_settings;
 create policy website_settings_update_org on public.website_settings
   for update using (public.has_role(organization_id, 'admin'));
 
+drop policy if exists website_pages_select_org on public.website_pages;
 create policy website_pages_select_org on public.website_pages
   for select using (public.is_org_member(organization_id));
+drop policy if exists website_pages_insert_org on public.website_pages;
 create policy website_pages_insert_org on public.website_pages
   for insert with check (public.is_org_member(organization_id));
+drop policy if exists website_pages_update_org on public.website_pages;
 create policy website_pages_update_org on public.website_pages
   for update using (public.has_role(organization_id, 'manager'));
+drop policy if exists website_pages_delete_org on public.website_pages;
 create policy website_pages_delete_org on public.website_pages
   for delete using (public.has_role(organization_id, 'manager'));
 
 -- Public read access for published website content (anon key)
+drop policy if exists website_settings_select_public on public.website_settings;
 create policy website_settings_select_public on public.website_settings
   for select using (is_published = true);
+drop policy if exists website_pages_select_public on public.website_pages;
 create policy website_pages_select_public on public.website_pages
   for select using (is_published = true);
+drop policy if exists products_select_public on public.products;
 create policy products_select_public on public.products
   for select using (status = 'published');
 
 -- Allow anon inserts of leads from public inquiry forms (with validation gate)
+drop policy if exists leads_insert_public on public.leads;
 create policy leads_insert_public on public.leads
   for insert with check (
     source = 'website'
@@ -104,6 +117,7 @@ create policy leads_insert_public on public.leads
   );
 
 -- Allow anon inserts of website visits (only for published sites)
+drop policy if exists website_visits_insert_public on public.website_visits;
 create policy website_visits_insert_public on public.website_visits
   for insert with check (
     organization_id in (
@@ -111,9 +125,11 @@ create policy website_visits_insert_public on public.website_visits
       where ws.is_published = true
     )
   );
+drop policy if exists website_visits_select_public_own on public.website_visits;
 create policy website_visits_select_public_own on public.website_visits
   for select using (public.is_org_member(organization_id));
 
 -- Allow anon reads of published blog posts
+drop policy if exists blog_posts_select_public on public.blog_posts;
 create policy blog_posts_select_public on public.blog_posts
   for select using (status = 'published');

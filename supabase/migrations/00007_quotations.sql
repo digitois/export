@@ -2,7 +2,7 @@
 -- Export OS - 00007: Quotations
 -- ------------------------------------------------------------------
 
-create table public.quotations (
+create table if not exists public.quotations (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations (id) on delete cascade,
   quotation_number text not null,
@@ -38,16 +38,17 @@ create table public.quotations (
   updated_at timestamptz not null default now()
 );
 
+drop trigger if exists trg_quotations_updated_at on public.quotations;
 create trigger trg_quotations_updated_at before update on public.quotations
   for each row execute function set_updated_at();
 
-create index idx_quotations_org on public.quotations (organization_id);
-create index idx_quotations_org_status on public.quotations (organization_id, status);
-create index idx_quotations_number on public.quotations (organization_id, quotation_number);
-create index idx_quotations_lead on public.quotations (lead_id);
-create index idx_quotations_created on public.quotations (organization_id, created_at desc);
+create index if not exists idx_quotations_org on public.quotations (organization_id);
+create index if not exists idx_quotations_org_status on public.quotations (organization_id, status);
+create index if not exists idx_quotations_number on public.quotations (organization_id, quotation_number);
+create index if not exists idx_quotations_lead on public.quotations (lead_id);
+create index if not exists idx_quotations_created on public.quotations (organization_id, created_at desc);
 
-create table public.quotation_items (
+create table if not exists public.quotation_items (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations (id) on delete cascade,
   quotation_id uuid not null references public.quotations (id) on delete cascade,
@@ -62,11 +63,11 @@ create table public.quotation_items (
   created_at timestamptz not null default now()
 );
 
-create index idx_quotation_items_org on public.quotation_items (organization_id);
-create index idx_quotation_items_quotation on public.quotation_items (quotation_id);
+create index if not exists idx_quotation_items_org on public.quotation_items (organization_id);
+create index if not exists idx_quotation_items_quotation on public.quotation_items (quotation_id);
 
 -- Version history for quotations
-create table public.quotation_versions (
+create table if not exists public.quotation_versions (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations (id) on delete cascade,
   quotation_id uuid not null references public.quotations (id) on delete cascade,
@@ -78,34 +79,45 @@ create table public.quotation_versions (
   unique (quotation_id, version)
 );
 
-create index idx_quotation_versions_org on public.quotation_versions (organization_id);
-create index idx_quotation_versions_quotation on public.quotation_versions (quotation_id);
+create index if not exists idx_quotation_versions_org on public.quotation_versions (organization_id);
+create index if not exists idx_quotation_versions_quotation on public.quotation_versions (quotation_id);
 
 alter table public.quotations enable row level security;
 alter table public.quotation_items enable row level security;
 alter table public.quotation_versions enable row level security;
 
+drop policy if exists quotations_select_org on public.quotations;
 create policy quotations_select_org on public.quotations
   for select using (public.is_org_member(organization_id));
+drop policy if exists quotations_insert_org on public.quotations;
 create policy quotations_insert_org on public.quotations
   for insert with check (public.is_org_member(organization_id));
+drop policy if exists quotations_update_org on public.quotations;
 create policy quotations_update_org on public.quotations
   for update using (public.has_role(organization_id, 'employee'));
+drop policy if exists quotations_delete_org on public.quotations;
 create policy quotations_delete_org on public.quotations
   for delete using (public.has_role(organization_id, 'manager'));
 
+drop policy if exists quotation_items_select_org on public.quotation_items;
 create policy quotation_items_select_org on public.quotation_items
   for select using (public.is_org_member(organization_id));
+drop policy if exists quotation_items_insert_org on public.quotation_items;
 create policy quotation_items_insert_org on public.quotation_items
   for insert with check (public.is_org_member(organization_id));
+drop policy if exists quotation_items_update_org on public.quotation_items;
 create policy quotation_items_update_org on public.quotation_items
   for update using (public.is_org_member(organization_id));
+drop policy if exists quotation_items_delete_org on public.quotation_items;
 create policy quotation_items_delete_org on public.quotation_items
   for delete using (public.has_role(organization_id, 'manager'));
 
+drop policy if exists quotation_versions_select_org on public.quotation_versions;
 create policy quotation_versions_select_org on public.quotation_versions
   for select using (public.is_org_member(organization_id));
+drop policy if exists quotation_versions_insert_org on public.quotation_versions;
 create policy quotation_versions_insert_org on public.quotation_versions
   for insert with check (public.is_org_member(organization_id));
+drop policy if exists quotation_versions_delete_org on public.quotation_versions;
 create policy quotation_versions_delete_org on public.quotation_versions
   for delete using (public.has_role(organization_id, 'admin'));

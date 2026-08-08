@@ -2,7 +2,7 @@
 -- Export OS - 00008: Invoices
 -- ------------------------------------------------------------------
 
-create table public.invoices (
+create table if not exists public.invoices (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations (id) on delete cascade,
   invoice_number text not null,
@@ -36,16 +36,17 @@ create table public.invoices (
   updated_at timestamptz not null default now()
 );
 
+drop trigger if exists trg_invoices_updated_at on public.invoices;
 create trigger trg_invoices_updated_at before update on public.invoices
   for each row execute function set_updated_at();
 
-create index idx_invoices_org on public.invoices (organization_id);
-create index idx_invoices_org_status on public.invoices (organization_id, status);
-create index idx_invoices_org_type on public.invoices (organization_id, invoice_type);
-create index idx_invoices_number on public.invoices (organization_id, invoice_number);
-create index idx_invoices_created on public.invoices (organization_id, created_at desc);
+create index if not exists idx_invoices_org on public.invoices (organization_id);
+create index if not exists idx_invoices_org_status on public.invoices (organization_id, status);
+create index if not exists idx_invoices_org_type on public.invoices (organization_id, invoice_type);
+create index if not exists idx_invoices_number on public.invoices (organization_id, invoice_number);
+create index if not exists idx_invoices_created on public.invoices (organization_id, created_at desc);
 
-create table public.invoice_items (
+create table if not exists public.invoice_items (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations (id) on delete cascade,
   invoice_id uuid not null references public.invoices (id) on delete cascade,
@@ -60,11 +61,11 @@ create table public.invoice_items (
   created_at timestamptz not null default now()
 );
 
-create index idx_invoice_items_org on public.invoice_items (organization_id);
-create index idx_invoice_items_invoice on public.invoice_items (invoice_id);
+create index if not exists idx_invoice_items_org on public.invoice_items (organization_id);
+create index if not exists idx_invoice_items_invoice on public.invoice_items (invoice_id);
 
 -- Payments received against invoices
-create table public.invoice_payments (
+create table if not exists public.invoice_payments (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations (id) on delete cascade,
   invoice_id uuid not null references public.invoices (id) on delete cascade,
@@ -78,36 +79,48 @@ create table public.invoice_payments (
   created_at timestamptz not null default now()
 );
 
-create index idx_invoice_payments_org on public.invoice_payments (organization_id);
-create index idx_invoice_payments_invoice on public.invoice_payments (invoice_id);
+create index if not exists idx_invoice_payments_org on public.invoice_payments (organization_id);
+create index if not exists idx_invoice_payments_invoice on public.invoice_payments (invoice_id);
 
 alter table public.invoices enable row level security;
 alter table public.invoice_items enable row level security;
 alter table public.invoice_payments enable row level security;
 
+drop policy if exists invoices_select_org on public.invoices;
 create policy invoices_select_org on public.invoices
   for select using (public.is_org_member(organization_id));
+drop policy if exists invoices_insert_org on public.invoices;
 create policy invoices_insert_org on public.invoices
   for insert with check (public.is_org_member(organization_id));
+drop policy if exists invoices_update_org on public.invoices;
 create policy invoices_update_org on public.invoices
   for update using (public.has_role(organization_id, 'employee'));
+drop policy if exists invoices_delete_org on public.invoices;
 create policy invoices_delete_org on public.invoices
   for delete using (public.has_role(organization_id, 'manager'));
 
+drop policy if exists invoice_items_select_org on public.invoice_items;
 create policy invoice_items_select_org on public.invoice_items
   for select using (public.is_org_member(organization_id));
+drop policy if exists invoice_items_insert_org on public.invoice_items;
 create policy invoice_items_insert_org on public.invoice_items
   for insert with check (public.is_org_member(organization_id));
+drop policy if exists invoice_items_update_org on public.invoice_items;
 create policy invoice_items_update_org on public.invoice_items
   for update using (public.is_org_member(organization_id));
+drop policy if exists invoice_items_delete_org on public.invoice_items;
 create policy invoice_items_delete_org on public.invoice_items
   for delete using (public.has_role(organization_id, 'manager'));
 
+drop policy if exists invoice_payments_select_org on public.invoice_payments;
 create policy invoice_payments_select_org on public.invoice_payments
   for select using (public.is_org_member(organization_id));
+drop policy if exists invoice_payments_insert_org on public.invoice_payments;
 create policy invoice_payments_insert_org on public.invoice_payments
   for insert with check (public.is_org_member(organization_id));
+drop policy if exists invoice_payments_update_org on public.invoice_payments;
 create policy invoice_payments_update_org on public.invoice_payments
   for update using (public.is_org_member(organization_id));
+drop policy if exists invoice_payments_delete_org on public.invoice_payments;
 create policy invoice_payments_delete_org on public.invoice_payments
   for delete using (public.has_role(organization_id, 'admin'));

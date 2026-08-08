@@ -2,7 +2,7 @@
 -- Export OS - 00013: AI Assistant, AI usage
 -- ------------------------------------------------------------------
 
-create table public.ai_conversations (
+create table if not exists public.ai_conversations (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations (id) on delete cascade,
   user_id uuid not null references public.profiles (id) on delete cascade,
@@ -11,13 +11,14 @@ create table public.ai_conversations (
   updated_at timestamptz not null default now()
 );
 
+drop trigger if exists trg_ai_conversations_updated_at on public.ai_conversations;
 create trigger trg_ai_conversations_updated_at before update on public.ai_conversations
   for each row execute function set_updated_at();
 
-create index idx_ai_conversations_org on public.ai_conversations (organization_id);
-create index idx_ai_conversations_user on public.ai_conversations (user_id);
+create index if not exists idx_ai_conversations_org on public.ai_conversations (organization_id);
+create index if not exists idx_ai_conversations_user on public.ai_conversations (user_id);
 
-create table public.ai_messages (
+create table if not exists public.ai_messages (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations (id) on delete cascade,
   conversation_id uuid not null references public.ai_conversations (id) on delete cascade,
@@ -29,10 +30,10 @@ create table public.ai_messages (
   created_at timestamptz not null default now()
 );
 
-create index idx_ai_messages_org on public.ai_messages (organization_id);
-create index idx_ai_messages_conversation on public.ai_messages (conversation_id);
+create index if not exists idx_ai_messages_org on public.ai_messages (organization_id);
+create index if not exists idx_ai_messages_conversation on public.ai_messages (conversation_id);
 
-create table public.ai_prompts (
+create table if not exists public.ai_prompts (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations (id) on delete cascade,
   title text not null,
@@ -44,13 +45,14 @@ create table public.ai_prompts (
   updated_at timestamptz not null default now()
 );
 
+drop trigger if exists trg_ai_prompts_updated_at on public.ai_prompts;
 create trigger trg_ai_prompts_updated_at before update on public.ai_prompts
   for each row execute function set_updated_at();
 
-create index idx_ai_prompts_org on public.ai_prompts (organization_id);
+create index if not exists idx_ai_prompts_org on public.ai_prompts (organization_id);
 
 -- AI usage accounting (per org, per month)
-create table public.ai_usage (
+create table if not exists public.ai_usage (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations (id) on delete cascade,
   month text not null,
@@ -67,30 +69,42 @@ alter table public.ai_messages enable row level security;
 alter table public.ai_prompts enable row level security;
 alter table public.ai_usage enable row level security;
 
+drop policy if exists ai_conversations_select_org on public.ai_conversations;
 create policy ai_conversations_select_org on public.ai_conversations
   for select using (public.is_org_member(organization_id));
+drop policy if exists ai_conversations_insert_org on public.ai_conversations;
 create policy ai_conversations_insert_org on public.ai_conversations
   for insert with check (public.is_org_member(organization_id));
+drop policy if exists ai_conversations_update_org on public.ai_conversations;
 create policy ai_conversations_update_org on public.ai_conversations
   for update using (public.is_org_member(organization_id));
+drop policy if exists ai_conversations_delete_org on public.ai_conversations;
 create policy ai_conversations_delete_org on public.ai_conversations
   for delete using (public.is_org_member(organization_id));
 
+drop policy if exists ai_messages_select_org on public.ai_messages;
 create policy ai_messages_select_org on public.ai_messages
   for select using (public.is_org_member(organization_id));
+drop policy if exists ai_messages_insert_org on public.ai_messages;
 create policy ai_messages_insert_org on public.ai_messages
   for insert with check (public.is_org_member(organization_id));
+drop policy if exists ai_messages_delete_org on public.ai_messages;
 create policy ai_messages_delete_org on public.ai_messages
   for delete using (public.is_org_member(organization_id));
 
+drop policy if exists ai_prompts_select_org on public.ai_prompts;
 create policy ai_prompts_select_org on public.ai_prompts
   for select using (public.is_org_member(organization_id));
+drop policy if exists ai_prompts_insert_org on public.ai_prompts;
 create policy ai_prompts_insert_org on public.ai_prompts
   for insert with check (public.is_org_member(organization_id));
+drop policy if exists ai_prompts_update_org on public.ai_prompts;
 create policy ai_prompts_update_org on public.ai_prompts
   for update using (public.is_org_member(organization_id));
+drop policy if exists ai_prompts_delete_org on public.ai_prompts;
 create policy ai_prompts_delete_org on public.ai_prompts
   for delete using (public.is_org_member(organization_id));
 
+drop policy if exists ai_usage_select_org on public.ai_usage;
 create policy ai_usage_select_org on public.ai_usage
   for select using (public.is_org_member(organization_id));

@@ -74,9 +74,9 @@ grant usage on all sequences in schema public to service_role;
 -- ------------------------------------------------------------------
 -- Search indexes (pg_trgm)
 -- ------------------------------------------------------------------
-create index idx_products_name_trgm on public.products using gin (name gin_trgm_ops);
-create index idx_buyers_company_trgm on public.buyers using gin (company_name gin_trgm_ops);
-create index idx_leads_buyer_name_trgm on public.leads using gin (buyer_name gin_trgm_ops);
+create index if not exists idx_products_name_trgm on public.products using gin (name gin_trgm_ops);
+create index if not exists idx_buyers_company_trgm on public.buyers using gin (company_name gin_trgm_ops);
+create index if not exists idx_leads_buyer_name_trgm on public.leads using gin (buyer_name gin_trgm_ops);
 
 -- ------------------------------------------------------------------
 -- Default data
