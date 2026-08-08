@@ -19,6 +19,22 @@ create table if not exists public.plans (
   created_at timestamptz not null default now()
 );
 
+-- Link organizations to plans (FK required for PostgREST nested joins)
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'public.organizations'::regclass
+      and contype = 'f'
+      and conname = 'fk_organizations_plan'
+  ) then
+    alter table public.organizations
+      add constraint fk_organizations_plan
+      foreign key (plan_id) references public.plans (id);
+  end if;
+end;
+$$;
+
 create table if not exists public.subscriptions (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations (id) on delete cascade,
