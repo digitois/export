@@ -4,6 +4,7 @@ import { publicInquirySchema } from '@/lib/validations';
 import { rateLimit } from '@/lib/rate-limit';
 import { createServiceClient } from '@/lib/supabase/service';
 import { sendEmail, isSesConfigured, emailLayout } from '@/lib/email';
+import { runWorkflows } from '@/lib/services/workflows';
 
 export async function POST(request: Request) {
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
@@ -36,9 +37,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Could not submit your inquiry' }, { status: 400 });
     }
 
+    // Trigger inquiry_received email automations (best-effort)
+    const service = createServiceClient();
+    await runWorkflows(service, {
+      trigger: 'inquiry_received',
+      organizationId: parsed.organizationId,
+      lead: {
+        id: data?.id ?? '',
+        email: parsed.email,
+        name: parsed.buyerName,
+        company: parsed.companyName ?? null,
+        country: parsed.country ?? null
+      }
+    });
+
     if (isSesConfigured()) {
       try {
-        const service = createServiceClient();
         const { data: org } = await service
           .from('organizations')
           .select('name, billing_email')

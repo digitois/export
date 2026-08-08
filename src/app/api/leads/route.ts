@@ -1,6 +1,7 @@
 import { requireAuth, handleApiError, ok, paginated, writeAudit, getIp } from '@/lib/api';
 import { leadSchema, paginationSchema } from '@/lib/validations';
 import { listLeads, createLead } from '@/lib/services/leads';
+import { runWorkflows } from '@/lib/services/workflows';
 
 export async function GET(request: Request) {
   try {
@@ -41,6 +42,20 @@ export async function POST(request: Request) {
       entityId: data?.id,
       meta: { buyerName: parsed.buyerName },
       ip: getIp(request)
+    });
+
+    // Trigger email automations (lead_created workflows)
+    await runWorkflows(ctx.supabase, {
+      trigger: 'lead_created',
+      organizationId: ctx.organizationId,
+      lead: {
+        id: data?.id ?? '',
+        email: parsed.email ?? null,
+        name: parsed.buyerName,
+        company: parsed.companyName ?? null,
+        country: parsed.country ?? null,
+        status: parsed.status
+      }
     });
 
     return ok(data);

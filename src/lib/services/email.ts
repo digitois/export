@@ -13,10 +13,24 @@ export async function listCampaigns(supabase: SupabaseClient, organizationId: st
 export async function listContactLists(supabase: SupabaseClient, organizationId: string) {
   const { data } = await supabase
     .from('contact_lists')
-    .select('*')
+    .select('*, contacts:email_contacts(count)')
     .eq('organization_id', organizationId)
     .order('name');
-  return data ?? [];
+  return (data ?? []).map((row) => {
+    const r = row as {
+      id: string; name: string; description: string | null;
+      created_at: string; contact_count?: number;
+      contacts?: Array<{ count: number }>;
+    };
+    const liveCount = r.contacts?.[0]?.count ?? 0;
+    return {
+      id: r.id,
+      name: r.name,
+      description: r.description,
+      created_at: r.created_at,
+      contact_count: liveCount || r.contact_count || 0
+    };
+  });
 }
 
 export async function createContactList(supabase: SupabaseClient, organizationId: string, userId: string, name: string, description?: string) {
@@ -103,11 +117,15 @@ export async function sendCampaign(supabase: SupabaseClient, organizationId: str
     .update({ status: 'sending', sent_at: new Date().toISOString() })
     .eq('id', id);
 
-  const { data: contacts } = await supabase
+  let query = supabase
     .from('email_contacts')
     .select('id, email, name')
     .eq('organization_id', organizationId)
     .eq('unsubscribed', false);
+
+  if (campaign.list_id) query = query.eq('list_id', campaign.list_id);
+
+  const { data: contacts } = await query;
 
   let sent = 0;
   for (const contact of (contacts ?? [])) {
