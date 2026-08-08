@@ -1,0 +1,40 @@
+import { redirect } from 'next/navigation';
+import { getCurrentUser, getProfile, getOrgContext } from '@/lib/auth';
+import { Sidebar } from '@/components/dashboard/sidebar';
+import { UserNav } from '@/components/dashboard/user-nav';
+
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  const [user, profile, org] = await Promise.all([getCurrentUser(), getProfile(), getOrgContext()]);
+
+  if (!user) redirect('/login');
+  if (!org.context) redirect('/onboarding');
+
+  return (
+    <div className="flex min-h-screen">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden md:block">
+        <Sidebar
+          organizationName={org.context.organizationName}
+          isSuperAdmin={profile?.is_superadmin ?? false}
+        />
+      </aside>
+      <div className="flex min-h-screen w-full flex-col md:pl-64">
+        <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b bg-background/95 px-4 backdrop-blur md:px-6">
+          <div className="md:hidden">
+            <span className="text-sm font-semibold">{org.context.organizationName}</span>
+          </div>
+          <div className="ml-auto">
+            <UserNav
+              user={{
+                id: user.id,
+                email: user.email ?? '',
+                fullName: profile?.full_name ?? 'User',
+                avatarUrl: profile?.avatar_url
+              }}
+            />
+          </div>
+        </header>
+        <main className="flex-1 p-4 md:p-6">{children}</main>
+      </div>
+    </div>
+  );
+}

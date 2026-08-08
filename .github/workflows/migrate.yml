@@ -1,0 +1,80 @@
+name: Migrate Database
+
+on:
+  push:
+    branches: [main, preview]
+    paths:
+      - 'supabase/migrations/**'
+      - 'supabase/seed.sql'
+      - '.github/workflows/migrate.yml'
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Target environment: main=production, preview=staging'
+        required: true
+        default: 'preview'
+        type: choice
+        options:
+          - preview
+          - main
+
+concurrency:
+  group: migrate-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    name: Apply SQL migrations
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      MIGRATIONS_DIR: supabase/migrations
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Determine target database
+        id: target
+        shell: bash
+        run: |
+          if [ "${{ github.ref_name }}" = "preview" ] || [ "${{ inputs.target }}" = "preview" ]; then
+            echo "db_url=${{ secrets.SUPABASE_PREVIEW_DB_URL }}" >> "$GITHUB_OUTPUT"
+            echo "label=preview" >> "$GITHUB_OUTPUT"
+          else
+            echo "db_url=${{ secrets.SUPABASE_DB_URL }}" >> "$GITHUB_OUTPUT"
+            echo "label=production" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run migrations
+        shell: bash
+        env:
+          DATABASE_URL: ${{ steps.target.outputs.db_url }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::error::DATABASE_URL secret is not configured for ${{ steps.target.outputs.label }}"
+            exit 1
+          fi
+
+          for f in "$MIGRATIONS_DIR"/*.sql; do
+            echo "Applying $(basename "$f") ..."
+            psql -v ON_ERROR_STOP=1 --echo-errors "$DATABASE_URL" -f "$f"
+          done
+          echo "All migrations applied successfully."
+
+      - name: Seed demo data on preview only
+        if: steps.target.outputs.label == 'preview'
+        shell: bash
+        env:
+          DATABASE_URL: ${{ steps.target.outputs.db_url }}
+        run: |
+          if [ -n "$DATABASE_URL" ]; then
+            echo "Seeding preview database ..."
+            psql -v ON_ERROR_STOP=1 --echo-errors "$DATABASE_URL" -f supabase/seed.sql
+          fi
