@@ -28,6 +28,14 @@ export async function POST(request: Request) {
 
     if (error) throw new ApiError(error.message, 500);
 
+    const { error: profileError } = await service.from('profiles').upsert({
+      id: user.id,
+      full_name: user.user_metadata?.full_name ?? user.email ?? 'New User',
+      email: user.email ?? ''
+    });
+
+    if (profileError) throw new ApiError(profileError.message, 500);
+
     const { error: memberError } = await service.from('organization_members').insert({
       organization_id: org.id,
       user_id: user.id,
