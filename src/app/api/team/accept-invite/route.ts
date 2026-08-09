@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     if (!user) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
 
     const supabase = await createClient();
-    const result = await acceptInvitation(supabase, token, user.id);
+    const result = await acceptInvitation(supabase, token, user.id, user.email ?? '');
 
     if (result.error) return NextResponse.json({ error: result.error instanceof Error ? result.error.message : 'Failed to accept invitation' }, { status: 400 });
     return NextResponse.json({ data: { organizationId: result.data?.organizationId } });

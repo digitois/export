@@ -184,7 +184,24 @@ export async function listTeamMembers(supabase: SupabaseClient, organizationId: 
     .select('*, profiles(id, full_name, email, avatar_url)')
     .eq('organization_id', organizationId)
     .order('created_at', { ascending: true });
-  return { items: data ?? [], error };
+
+  const items = (data ?? []).map((m) => {
+    const profile = (m.profiles ?? {}) as {
+      id?: string | null;
+      full_name?: string | null;
+      email?: string | null;
+      avatar_url?: string | null;
+    };
+    return {
+      ...m,
+      user_id: profile.id ?? m.user_id,
+      full_name: profile.full_name ?? 'Invited member',
+      email: profile.email ?? '',
+      avatar_url: profile.avatar_url ?? null
+    };
+  });
+
+  return { items, error };
 }
 
 export async function inviteMember(
@@ -196,8 +213,7 @@ export async function inviteMember(
   const token = crypto.randomUUID();
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
-  // Store invitation
-  const { error: invError } = await supabase
+  const { data, error } = await supabase
     .from('organization_invitations')
     .insert({
       organization_id: organizationId,
@@ -207,19 +223,6 @@ export async function inviteMember(
       invited_by: userId,
       status: 'pending',
       expires_at: expiresAt
-    });
-
-  if (invError) return { data: null, error: invError, token: null };
-
-  // Also create a pending membership record
-  const { data, error } = await supabase
-    .from('organization_members')
-    .insert({
-      organization_id: organizationId,
-      email: input.email,
-      role: input.role,
-      invited_by: userId,
-      status: 'pending'
     })
     .select()
     .single();
@@ -230,45 +233,17 @@ export async function inviteMember(
 export async function acceptInvitation(
   supabase: SupabaseClient,
   token: string,
-  userId: string
+  userId: string,
+  userEmail: string
 ) {
-  // First, find the invitation by token
-  const { data: invitation, error: invError } = await supabase
-    .from('organization_invitations')
-    .select('id, organization_id, email')
-    .eq('token', token)
-    .eq('status', 'pending')
-    .single();
+  const { data, error } = await supabase.rpc('accept_org_invitation', {
+    p_token: token,
+    p_user_id: userId,
+    p_user_email: userEmail
+  });
 
-  if (invError || !invitation) {
-    return { data: null, error: new Error('Invalid or expired invitation token') };
-  }
-
-  // Check if user email matches invitation email
-  const { data: user } = await supabase.auth.admin.getUserById(userId);
-  if (user.user?.email !== invitation.email) {
-    return { data: null, error: new Error('Invitation email does not match your account') };
-  }
-
-  // Update the invitation status
-  await supabase
-    .from('organization_invitations')
-    .update({ status: 'accepted' })
-    .eq('id', invitation.id);
-
-  // Add user as member
-  const { data, error } = await supabase
-    .from('organization_members')
-    .upsert({
-      organization_id: invitation.organization_id,
-      user_id: userId,
-      role: 'employee',
-      status: 'active'
-    }, { onConflict: 'organization_id,user_id' })
-    .select()
-    .single();
-
-  return { data: { organizationId: invitation.organization_id }, error };
+  if (error) return { data: null, error: new Error(error.message) };
+  return { data: { organizationId: data as string }, error: null };
 }
 
 export async function updateMemberRole(
@@ -303,13 +278,12 @@ export async function removeMember(
 export async function revokeInvitation(
   supabase: SupabaseClient,
   organizationId: string,
-  memberId: string
+  invitationId: string
 ) {
   const { error } = await supabase
-    .from('organization_members')
-    .delete()
+    .from('organization_invitations')
+    .update({ status: 'revoked' })
     .eq('organization_id', organizationId)
-    .eq('id', memberId)
-    .eq('status', 'pending');
+    .eq('id', invitationId);
   return { error };
 }

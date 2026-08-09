@@ -9,8 +9,9 @@ import {
 export async function GET() {
   try {
     const ctx = await requireAuth();
-    const members = await listTeamMembers(ctx.supabase, ctx.organizationId);
-    return ok(members);
+    const { items, error } = await listTeamMembers(ctx.supabase, ctx.organizationId);
+    if (error) return ok({ error: error.message }, { status: 400 });
+    return ok(items);
   } catch (err) {
     return handleApiError(err);
   }
