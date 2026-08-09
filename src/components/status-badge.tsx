@@ -42,7 +42,14 @@ const STATUS_STYLES: Record<string, { variant: 'default' | 'secondary' | 'destru
   at_customs: { variant: 'warning', label: 'At Customs' },
   cleared: { variant: 'success', label: 'Cleared' },
   delivered: { variant: 'success', label: 'Delivered' },
-  held: { variant: 'destructive', label: 'Held' }
+  held: { variant: 'destructive', label: 'Held' },
+  low: { variant: 'destructive', label: 'Low' },
+  ok: { variant: 'success', label: 'OK' },
+  yes: { variant: 'success', label: 'Yes' },
+  no: { variant: 'secondary', label: 'No' },
+  in: { variant: 'success', label: 'In' },
+  out: { variant: 'info', label: 'Out' },
+  adjustment: { variant: 'warning', label: 'Adjustment' }
 };
 
 const DOT: Record<string, string> = {

@@ -107,6 +107,21 @@ export const EXPENSE_CATEGORIES = [
   { value: 'other', label: 'Other' }
 ] as const;
 
+export const STOCK_MOVEMENT_TYPES = [
+  { value: 'in', label: 'Stock In' },
+  { value: 'out', label: 'Stock Out' },
+  { value: 'adjustment', label: 'Adjustment' }
+] as const;
+
+export const PURCHASE_ORDER_STATUSES = [
+  { value: 'draft', label: 'Draft' },
+  { value: 'sent', label: 'Sent' },
+  { value: 'confirmed', label: 'Confirmed' },
+  { value: 'partially_received', label: 'Partially Received' },
+  { value: 'received', label: 'Received' },
+  { value: 'cancelled', label: 'Cancelled' }
+] as const;
+
 export const DOCUMENT_TYPES = [
   { value: 'iec', label: 'IEC' },
   { value: 'gst', label: 'GST' },
