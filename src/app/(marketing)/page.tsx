@@ -119,25 +119,25 @@ export default async function MarketingHomePage() {
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              'radial-gradient(60% 60% at 50% 0%, rgb(30 41 59 / 0.6) 0%, transparent 60%), radial-gradient(40% 40% at 80% 20%, rgb(16 185 129 / 0.15) 0%, transparent 70%)'
+              'radial-gradient(60% 60% at 50% 0%, rgb(30 41 59 / 0.6) 0%, transparent 60%), radial-gradient(40% 40% at 80% 20%, rgb(30 111 92 / 0.25) 0%, transparent 70%)'
           }}
         />
         <div className="relative mx-auto max-w-6xl px-4 pb-20 pt-24 sm:px-6 sm:pt-32">
           <div className="mx-auto max-w-3xl text-center">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1 text-xs font-medium text-slate-300">
-              <Star className="h-3.5 w-3.5 text-emerald-400" />
+            <span className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1 text-xs font-medium text-slate-300">
+              <Star className="h-3.5 w-3.5 text-primary" />
               Built for Indian exporters
             </span>
-            <h1 className="mt-6 text-4xl font-bold tracking-tight sm:text-6xl">
+            <h1 className="animate-fade-up mt-6 font-display text-4xl font-bold tracking-tight [animation-delay:80ms] sm:text-6xl">
               Export Smarter.
               <br />
               <span className="text-slate-400">Grow Faster.</span>
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-300">
+            <p className="animate-fade-up mx-auto mt-6 max-w-2xl text-lg text-slate-300 [animation-delay:160ms]">
               HSN code search, an export website builder, quotations, invoices and email marketing — the
               operating system for Indian export businesses in one place.
             </p>
-            <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <div className="animate-fade-up mt-10 flex flex-col items-center justify-center gap-3 [animation-delay:240ms] sm:flex-row">
               <Link
                 href="/signup"
                 className="inline-flex h-11 items-center gap-2 rounded-lg bg-white px-6 text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-200"
@@ -151,6 +151,20 @@ export default async function MarketingHomePage() {
               >
                 View pricing
               </Link>
+            </div>
+
+            <div className="animate-fade-up mx-auto mt-12 grid max-w-2xl grid-cols-2 gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10 [animation-delay:320ms] sm:grid-cols-4">
+              {[
+                { code: 'IEC', label: 'Import-Export Code' },
+                { code: 'GST', label: 'GST Ready' },
+                { code: 'INCOTERMS', label: '2020 Support' },
+                { code: 'ITC-HS', label: 'Tariff Search' }
+              ].map((marker) => (
+                <div key={marker.code} className="bg-slate-950 px-4 py-3 text-left">
+                  <p className="font-display text-sm font-bold tracking-wide text-primary">{marker.code}</p>
+                  <p className="mt-0.5 text-[11px] text-slate-400">{marker.label}</p>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -176,7 +190,7 @@ export default async function MarketingHomePage() {
       <section id="features" className="scroll-mt-16 bg-white py-24">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+            <h2 className="font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
               Everything you need to export, in one place
             </h2>
             <p className="mt-4 text-slate-500">
@@ -190,7 +204,7 @@ export default async function MarketingHomePage() {
                 key={feature.title}
                 className="group rounded-2xl border border-slate-200 bg-white p-6 transition-shadow hover:shadow-lg"
               >
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900 text-white">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent-weak text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
                   <feature.icon className="h-5 w-5" />
                 </div>
                 <h3 className="mt-5 text-base font-semibold text-slate-900">{feature.title}</h3>
@@ -204,7 +218,7 @@ export default async function MarketingHomePage() {
       <section className="bg-slate-50 py-24">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+            <h2 className="font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
               Get exporting in three steps
             </h2>
             <p className="mt-4 text-slate-500">From zero to first quotation in a single afternoon.</p>
@@ -212,7 +226,7 @@ export default async function MarketingHomePage() {
           <div className="mt-16 grid gap-6 md:grid-cols-3">
             {steps.map((item) => (
               <div key={item.step} className="rounded-2xl border border-slate-200 bg-white p-6">
-                <span className="text-sm font-bold text-emerald-600">{item.step}</span>
+                <span className="font-display text-sm font-bold text-primary">{item.step}</span>
                 <h3 className="mt-3 text-lg font-semibold text-slate-900">{item.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-slate-500">{item.description}</p>
               </div>
@@ -225,7 +239,7 @@ export default async function MarketingHomePage() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           {plans.length > 0 && (
             <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+              <h2 className="font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
                 Simple pricing that grows with you
               </h2>
               <p className="mt-4 text-slate-500">
@@ -268,7 +282,7 @@ export default async function MarketingHomePage() {
       <section className="bg-slate-50 py-24">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+            <h2 className="font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
               Loved by exporters
             </h2>
             <p className="mt-4 text-slate-500">What early adopters are saying about Export OS.</p>
@@ -278,7 +292,7 @@ export default async function MarketingHomePage() {
               <figure key={item.name} className="rounded-2xl border border-slate-200 bg-white p-6">
                 <div className="flex gap-1">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-emerald-500 text-emerald-500" />
+                    <Star key={i} className="h-4 w-4 fill-primary text-primary" />
                   ))}
                 </div>
                 <blockquote className="mt-4 text-sm leading-relaxed text-slate-600">
@@ -296,7 +310,7 @@ export default async function MarketingHomePage() {
 
       <section className="bg-slate-950 py-24 text-white">
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Ready to export smarter?</h2>
+          <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Ready to export smarter?</h2>
           <p className="mt-4 text-slate-300">
             Join the exporters scaling their businesses with Export OS. Start free in minutes.
           </p>

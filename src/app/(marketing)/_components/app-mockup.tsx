@@ -45,7 +45,7 @@ export function AppMockup() {
           <div className="flex-1 p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div className="h-4 w-32 rounded-md bg-slate-800" />
-              <div className="h-7 w-20 rounded-lg bg-emerald-500/90" />
+              <div className="h-7 w-20 rounded-lg bg-primary/90" />
             </div>
             <div className="mt-5 grid grid-cols-3 gap-3">
               {[0, 1, 2].map((cell) => (
@@ -72,7 +72,7 @@ export function AppMockup() {
                     <div className="text-xs font-medium text-slate-200">{row.name}</div>
                     <div className="text-[10px] text-slate-500">{row.country}</div>
                   </div>
-                  <span className="text-xs font-semibold text-emerald-400">{row.value}</span>
+                  <span className="text-xs font-semibold text-primary">{row.value}</span>
                 </div>
               ))}
             </div>
