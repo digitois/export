@@ -7,7 +7,11 @@
 -- is handled server-side by src/lib/services/workflows.ts.
 -- ------------------------------------------------------------------
 
-create type public.workflow_trigger as enum ('lead_created', 'lead_status_changed', 'inquiry_received');
+do $$ begin
+  if not exists (select 1 from pg_type t join pg_namespace n on n.oid = t.typnamespace where t.typname = 'workflow_trigger' and n.nspname = 'public') then
+    create type public.workflow_trigger as enum ('lead_created', 'lead_status_changed', 'inquiry_received');
+  end if;
+end $$;
 
 create table if not exists public.email_workflows (
   id uuid primary key default gen_random_uuid(),

@@ -59,3 +59,6 @@ select
 from public.organizations o
 join public.website_settings ws on ws.organization_id = o.id and ws.is_published = true
 left join public.company_profiles cp on cp.organization_id = o.id;
+
+-- Re-grant public read access (drop/recreate above resets the grant).
+grant select on public.public_sites to anon, authenticated;
