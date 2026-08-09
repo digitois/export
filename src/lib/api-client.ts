@@ -45,6 +45,17 @@ export async function api<T = unknown>(
   return payload as T;
 }
 
+/**
+ * Fetch a route handler that responds with the standard `{ data }` envelope and
+ * return the unwrapped payload directly. Most API responses in this app use that
+ * shape (see `ok()` in `src/lib/api.ts`); this helper keeps call sites typed and
+ * avoids the class of bug where a raw `{ data: T }` object is consumed as `T`.
+ */
+export async function apiData<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const { data } = await api<{ data: T }>(path, options);
+  return data;
+}
+
 export function getSearchParamString(params: Record<string, string | number | undefined | null>): string {
   const search = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {

@@ -80,6 +80,17 @@ export function camelToSnakeObject<T extends Record<string, unknown>>(obj: T): R
   return out;
 }
 
+/**
+ * Validate a `next`/redirect query param so it can only point back to a path on
+ * this site (prevents open-redirect abuse). Returns the fallback when unsafe.
+ */
+export function safeRedirectPath(next: string | null | undefined, fallback = '/dashboard'): string {
+  if (!next) return fallback;
+  // Must be a relative path, not a protocol-relative (`//host`) or absolute URL.
+  if (!next.startsWith('/') || next.startsWith('//') || next.startsWith('/\\')) return fallback;
+  return next;
+}
+
 export function absoluteUrl(path: string): string {
   const base = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
   return `${base}${path.startsWith('/') ? path : `/${path}`}`;

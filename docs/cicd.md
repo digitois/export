@@ -6,7 +6,7 @@ Pipeline is fully defined in `.github/workflows/`:
 | --- | --- | --- |
 | `ci.yml` | PR to `main`, push to `main` | `pnpm install`, `typecheck`, `build` |
 | `migrate.yml` | push touching `supabase/migrations` or `seed.sql` on `main`/`preview`, or manual | Applies `supabase/migrations/*.sql` in order via `psql`; seeds the preview DB |
-| `deploy.yml` | PR to `main` (preview), push to `main` (prod) | Deploys to Vercel via `amondnet/vercel-action` |
+| `deploy.yml` | push to `main` (prod), push to `preview` (preview), or manual | Guarded Vercel CLI deploy — **no-op unless `VERCEL_TOKEN` is set** (see below) |
 
 ## Branches
 
@@ -37,9 +37,14 @@ Set the app-level `NEXT_PUBLIC_*` variables in Vercel:
 
 Recommended: use Vercel's native **Git integration** (import the repo at vercel.com) —
 Vercel then builds previews for every PR and production on `main` automatically.
-The `deploy.yml` workflow is provided as an alternative for token-based deploys;
-delete it if you rely on the native integration (Vercel's own deployments would
-otherwise run in parallel).
+
+`deploy.yml` is the token-based alternative. It is **self-guarding**: the first step
+reads `secrets.VERCEL_TOKEN`, and every deploy step is gated on it being set. With the
+`VERCEL_*` secrets unset (the default when you rely on Git integration) the workflow
+runs green as a no-op and prints a skip notice, so it never races Vercel's own
+deployments. Set `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID` only if you
+want GitHub Actions to own deploys instead — push to `main` deploys production
+(`--prod`), push to `preview` deploys a preview build.
 
 ## Note on the AI build-time requirement
 

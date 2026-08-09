@@ -14,7 +14,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <aside className="fixed inset-y-0 left-0 z-30 hidden md:block">
         <Sidebar
           organizationName={org.context.organizationName}
-          isSuperAdmin={profile?.is_superadmin ?? false}
+          isSuperAdmin={profile?.is_platform_admin ?? false}
         />
       </aside>
       <div className="flex min-h-screen w-full flex-col md:pl-64">

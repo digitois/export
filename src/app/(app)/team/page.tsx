@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { UserPlus, MailX, Trash2, Users } from 'lucide-react';
-import { api } from '@/lib/api-client';
+import { api, apiData } from '@/lib/api-client';
 import { PageHeader } from '@/components/page-header';
 import { Loading } from '@/components/loading';
 import { EmptyState } from '@/components/empty-state';
@@ -81,12 +81,12 @@ export default function TeamPage() {
     setLoading(true);
     setError('');
     try {
-      const [m, i] = await Promise.all([
-        api<{ data: Member[] }>('/api/team/members'),
-        api<{ data: Invitation[] }>('/api/team/invitations')
+      const [members, invitations] = await Promise.all([
+        apiData<Member[]>('/api/team/members'),
+        apiData<Invitation[]>('/api/team/invitations')
       ]);
-      setMembers(m.data);
-      setInvitations(i.data);
+      setMembers(members);
+      setInvitations(invitations);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load team');
     } finally {
@@ -166,7 +166,10 @@ export default function TeamPage() {
     }
   }
 
-  const pendingInvitations = invitations.filter((i) => i.status === 'pending');
+  const memberList = Array.isArray(members) ? members : [];
+  const pendingInvitations = (Array.isArray(invitations) ? invitations : []).filter(
+    (i) => i.status === 'pending'
+  );
 
   return (
     <div className="space-y-6">
@@ -229,10 +232,10 @@ export default function TeamPage() {
                 <CardTitle>Active Members</CardTitle>
                 <CardDescription>People with access to this organization.</CardDescription>
               </div>
-              <Badge variant="secondary">{members.length} member{members.length !== 1 && 's'}</Badge>
+              <Badge variant="secondary">{memberList.length} member{memberList.length !== 1 && 's'}</Badge>
             </CardHeader>
             <CardContent className="p-0">
-              {members.length === 0 ? (
+              {memberList.length === 0 ? (
                 <div className="px-6 pb-6">
                   <EmptyState
                     icon={Users}
@@ -253,7 +256,7 @@ export default function TeamPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {members.map((member) => (
+                    {memberList.map((member) => (
                       <TableRow key={member.id}>
                         <TableCell>
                           <div className="flex items-center gap-3">
