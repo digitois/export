@@ -131,19 +131,3 @@ create policy contracts_update_org on public.contracts
 drop policy if exists contracts_delete_org on public.contracts;
 create policy contracts_delete_org on public.contracts
   for delete using (public.has_role(organization_id, 'manager'));
-
--- Seed default pipeline stages for existing orgs (idempotent)
-insert into public.lead_stages (organization_id, name, color, sort_order, is_default, is_won, is_lost, created_by)
-select o.id, s.name, s.color, s.sort_order::int, s.is_default::boolean, s.is_won::boolean, s.is_lost::boolean, o.created_by
-from public.organizations o
-cross join (
-  values
-    ('New', '#64748b', '0', 'true', 'false', 'false'),
-    ('Contacted', '#0ea5e9', '1', 'false', 'false', 'false'),
-    ('Qualified', '#22c55e', '2', 'false', 'false', 'false'),
-    ('Proposal Sent', '#f59e0b', '3', 'false', 'false', 'false'),
-    ('Negotiation', '#8b5cf6', '4', 'false', 'false', 'false'),
-    ('Won', '#16a34a', '5', 'false', 'true', 'false'),
-    ('Lost', '#dc2626', '6', 'false', 'false', 'true')
-) as s(name, color, sort_order, is_default, is_won, is_lost)
-on conflict (organization_id, name) do nothing;
