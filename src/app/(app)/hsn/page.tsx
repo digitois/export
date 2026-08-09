@@ -151,7 +151,7 @@ export default function HsnSearchPage() {
                 <p className="mt-1 text-sm text-muted-foreground">{row.description}</p>
               </div>
               <Button variant="ghost" size="icon" onClick={() => copyCode(row.code)} title="Copy code">
-                {copied === row.code ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+                {copied === row.code ? <Check className="h-4 w-4 text-pos" /> : <Copy className="h-4 w-4" />}
               </Button>
             </CardContent>
           </Card>
