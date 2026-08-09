@@ -90,6 +90,23 @@ export const COO_TYPES = [
   { value: 'other', label: 'Other' }
 ] as const;
 
+export const EXPENSE_CATEGORIES = [
+  { value: 'raw_materials', label: 'Raw Materials' },
+  { value: 'packaging', label: 'Packaging' },
+  { value: 'freight', label: 'Freight & Logistics' },
+  { value: 'customs', label: 'Customs & Duties' },
+  { value: 'warehousing', label: 'Warehousing' },
+  { value: 'marketing', label: 'Marketing' },
+  { value: 'travel', label: 'Travel' },
+  { value: 'office', label: 'Office & Admin' },
+  { value: 'salaries', label: 'Salaries' },
+  { value: 'commission', label: 'Commission' },
+  { value: 'insurance', label: 'Insurance' },
+  { value: 'bank_charges', label: 'Bank Charges' },
+  { value: 'utilities', label: 'Utilities' },
+  { value: 'other', label: 'Other' }
+] as const;
+
 export const DOCUMENT_TYPES = [
   { value: 'iec', label: 'IEC' },
   { value: 'gst', label: 'GST' },
