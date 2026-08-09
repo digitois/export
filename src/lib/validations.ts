@@ -316,6 +316,45 @@ export const websiteSettingsSchema = z.object({
     .default([])
 });
 
+export const shipmentSchema = z.object({
+  buyerId: z.string().uuid().optional().nullable(),
+  invoiceId: z.string().uuid().optional().nullable(),
+  quotationId: z.string().uuid().optional().nullable(),
+  leadId: z.string().uuid().optional().nullable(),
+  buyerName: z.string().optional().nullable(),
+  buyerCompany: z.string().optional().nullable(),
+  buyerCountry: z.string().optional().nullable(),
+  mode: z.enum(['air', 'sea', 'road', 'rail', 'courier']).default('sea'),
+  incoterm: z.enum(['EXW', 'FCA', 'FAS', 'FOB', 'CFR', 'CIF', 'CPT', 'CIP', 'DAP', 'DPU', 'DDP']).default('FOB'),
+  originPort: z.string().optional().nullable(),
+  destinationPort: z.string().optional().nullable(),
+  containerNo: z.string().optional().nullable(),
+  blAwbNo: z.string().optional().nullable(),
+  carrier: z.string().optional().nullable(),
+  vessel: z.string().optional().nullable(),
+  etd: z.string().optional().nullable(),
+  eta: z.string().optional().nullable(),
+  actualDeparture: z.string().optional().nullable(),
+  actualArrival: z.string().optional().nullable(),
+  status: z
+    .enum(['booked', 'in_transit', 'at_customs', 'cleared', 'delivered', 'held', 'cancelled'])
+    .default('booked'),
+  cargoDescription: z.string().optional().nullable(),
+  weightKg: z.coerce.number().min(0).optional().nullable(),
+  volumeCbm: z.coerce.number().min(0).optional().nullable(),
+  noOfPackages: z.coerce.number().int().min(0).default(0),
+  currency: z.string().length(3).default('USD'),
+  freightCharges: z.coerce.number().min(0).default(0),
+  notes: z.string().optional().nullable()
+});
+
+export const shipmentEventSchema = z.object({
+  shipmentId: z.string().uuid(),
+  stage: z.enum(['booked', 'in_transit', 'at_customs', 'cleared', 'delivered', 'held', 'cancelled']),
+  note: z.string().max(2000).optional().nullable(),
+  occurredAt: z.string().datetime().optional().nullable()
+});
+
 export const supportTicketSchema = z.object({
   subject: z.string().min(1).max(200),
   description: z.string().min(1).max(10000),
