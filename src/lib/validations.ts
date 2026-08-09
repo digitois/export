@@ -355,6 +355,78 @@ export const shipmentEventSchema = z.object({
   occurredAt: z.string().datetime().optional().nullable()
 });
 
+export const landedCostSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(200),
+  currency: z.string().length(3).default('USD'),
+  productValue: z.coerce.number().min(0),
+  freight: z.coerce.number().min(0).default(0),
+  insurance: z.coerce.number().min(0).default(0),
+  dutyRate: z.coerce.number().min(0).max(100).default(0),
+  otherCharges: z.coerce.number().min(0).default(0),
+  quantity: z.coerce.number().min(0).default(1),
+  incoterm: z
+    .enum(['EXW', 'FCA', 'FAS', 'FOB', 'CFR', 'CIF', 'CPT', 'CIP', 'DAP', 'DPU', 'DDP'])
+    .default('FOB'),
+  notes: z.string().optional().nullable()
+});
+
+export const packingListItemSchema = z.object({
+  productId: z.string().uuid().optional().nullable(),
+  description: z.string().min(1).max(1000),
+  hsnCode: z.string().optional().nullable(),
+  quantity: z.coerce.number().min(0.0001),
+  unit: z.string().optional().nullable(),
+  packageCount: z.coerce.number().int().min(1).default(1),
+  weightKg: z.coerce.number().min(0).default(0),
+  volumeCbm: z.coerce.number().min(0).default(0)
+});
+
+export const packingListSchema = z.object({
+  shipmentId: z.string().uuid().optional().nullable(),
+  invoiceId: z.string().uuid().optional().nullable(),
+  buyerName: z.string().min(1, 'Buyer name is required').max(200),
+  buyerCompany: z.string().optional().nullable(),
+  buyerAddress: z.string().optional().nullable(),
+  buyerCountry: z.string().optional().nullable(),
+  containerNo: z.string().optional().nullable(),
+  blAwbNo: z.string().optional().nullable(),
+  portOfLoading: z.string().optional().nullable(),
+  portOfDischarge: z.string().optional().nullable(),
+  vessel: z.string().optional().nullable(),
+  currency: z.string().length(3).default('USD'),
+  notes: z.string().optional().nullable(),
+  items: z.array(packingListItemSchema).min(1, 'Add at least one item')
+});
+
+export const certificateItemSchema = z.object({
+  productId: z.string().uuid().optional().nullable(),
+  description: z.string().min(1).max(1000),
+  hsnCode: z.string().optional().nullable(),
+  quantity: z.coerce.number().min(0.0001),
+  unit: z.string().optional().nullable(),
+  unitValue: z.coerce.number().min(0).default(0),
+  grossWeightKg: z.coerce.number().min(0).default(0),
+  netWeightKg: z.coerce.number().min(0).default(0)
+});
+
+export const certificateOfOriginSchema = z.object({
+  certificateType: z
+    .enum(['non_preferential', 'preferential', 'gst', 'wpc', 'other'])
+    .default('non_preferential'),
+  shipmentId: z.string().uuid().optional().nullable(),
+  invoiceId: z.string().uuid().optional().nullable(),
+  buyerName: z.string().min(1, 'Buyer name is required').max(200),
+  buyerCompany: z.string().optional().nullable(),
+  buyerAddress: z.string().optional().nullable(),
+  buyerCountry: z.string().optional().nullable(),
+  exporterIec: z.string().optional().nullable(),
+  countryOfOrigin: z.string().default('India'),
+  countryOfDestination: z.string().optional().nullable(),
+  issuedDate: z.string().default(() => new Date().toISOString().slice(0, 10)),
+  notes: z.string().optional().nullable(),
+  items: z.array(certificateItemSchema).min(1, 'Add at least one item')
+});
+
 export const supportTicketSchema = z.object({
   subject: z.string().min(1).max(200),
   description: z.string().min(1).max(10000),
