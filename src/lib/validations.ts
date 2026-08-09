@@ -302,7 +302,16 @@ export const websiteSettingsSchema = z.object({
   contactPhone: z.string().optional().nullable(),
   whatsappNumber: z.string().optional().nullable(),
   analyticsId: z.string().optional().nullable(),
-  customFooter: z.string().optional().nullable()
+  customFooter: z.string().optional().nullable(),
+  blocks: z
+    .array(
+      z.object({
+        id: z.string(),
+        type: z.string(),
+        props: z.record(z.unknown()).default({})
+      })
+    )
+    .default([])
 });
 
 export const supportTicketSchema = z.object({
@@ -314,6 +323,36 @@ export const supportTicketSchema = z.object({
 
 export const supportReplySchema = z.object({
   body: z.string().min(1).max(10000)
+});
+
+export const platformPlanSchema = z.object({
+  name: z.string().min(1).max(200),
+  code: z.string().min(1).max(100),
+  description: z.string().optional().nullable(),
+  priceMonthly: z.coerce.number().min(0).default(0),
+  priceAnnual: z.coerce.number().min(0).default(0),
+  currency: z.string().length(3).default('INR'),
+  features: z.array(z.string()).default([]),
+  limits: z.record(z.unknown()).default({}),
+  razorpayPlanIdMonthly: z.string().optional().nullable(),
+  razorpayPlanIdAnnual: z.string().optional().nullable(),
+  isActive: z.boolean().default(true),
+  sortOrder: z.coerce.number().default(0)
+});
+
+export const featureFlagSchema = z.object({
+  key: z.string().min(1),
+  enabled: z.boolean().default(true),
+  description: z.string().optional().nullable()
+});
+
+export const announcementSchema = z.object({
+  title: z.string().min(1).max(300),
+  body: z.string().optional().nullable(),
+  level: z.string().default('info'),
+  isActive: z.boolean().default(true),
+  startsAt: z.string().optional().nullable(),
+  endsAt: z.string().optional().nullable()
 });
 
 export const publicInquirySchema = z.object({

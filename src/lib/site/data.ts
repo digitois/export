@@ -27,6 +27,7 @@ export interface PublicSite {
   whatsapp_number: string | null;
   custom_domain: string | null;
   custom_footer: string | null;
+  blocks: { id: string; type: string; props: Record<string, unknown> }[] | null;
   about: string | null;
   tagline: string | null;
   export_markets: string[] | null;

@@ -1,4 +1,13 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { camelToSnakeObject } from '@/lib/utils';
+
+export function planPayloadToSnake(input: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(input)) {
+    if (value !== undefined) out[key] = value;
+  }
+  return camelToSnakeObject(out);
+}
 
 export async function listOrganizations(supabase: SupabaseClient, opts: { page: number; pageSize: number; q?: string }) {
   let query = supabase
@@ -146,4 +155,128 @@ export async function createAnnouncement(supabase: SupabaseClient, payload: Reco
 export async function getUsageSnapshot(supabase: SupabaseClient, organizationId: string) {
   const { data, error } = await supabase.rpc('organization_usage', { p_org_id: organizationId });
   return { data: (data as Record<string, number> | null) ?? null, error };
+}
+
+export async function listFeatureFlags(supabase: SupabaseClient) {
+  const { data } = await supabase.from('feature_flags').select('*').order('updated_at', { ascending: false });
+  return data ?? [];
+}
+
+export async function upsertFeatureFlag(
+  supabase: SupabaseClient,
+  payload: { key: string; enabled: boolean; description?: string | null }
+) {
+  const { data, error } = await supabase
+    .from('feature_flags')
+    .upsert({ key: payload.key, enabled: payload.enabled, description: payload.description ?? undefined }, { onConflict: 'key' })
+    .select()
+    .single();
+  return { data, error };
+}
+
+export async function deletePlan(supabase: SupabaseClient, id: string) {
+  const { error } = await supabase.from('plans').delete().eq('id', id);
+  return { error };
+}
+
+export async function updateAnnouncement(supabase: SupabaseClient, id: string, payload: Record<string, unknown>) {
+  const { data, error } = await supabase.from('announcements').update(payload).eq('id', id).select().single();
+  return { data, error };
+}
+
+export async function deleteAnnouncement(supabase: SupabaseClient, id: string) {
+  const { error } = await supabase.from('announcements').delete().eq('id', id);
+  return { error };
+}
+
+async function safeCount(
+  supabase: SupabaseClient,
+  table: string,
+  opts: { statuses?: string[]; createdSince?: Date } = {}
+) {
+  try {
+    let query = supabase.from(table).select('*', { count: 'exact', head: true });
+    if (opts.statuses && opts.statuses.length > 0) query = query.in('status', opts.statuses);
+    if (opts.createdSince) query = query.gte('created_at', opts.createdSince.toISOString());
+    const { count } = await query;
+    return count ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
+export async function getAdminOverview(supabase: SupabaseClient) {
+  const monthStart = new Date();
+  monthStart.setUTCDate(1);
+  monthStart.setUTCHours(0, 0, 0, 0);
+
+  const recentOrganizations = await (async () => {
+    try {
+      const { data } = await supabase
+        .from('organizations')
+        .select('*, plans(name, code)')
+        .order('created_at', { ascending: false })
+        .limit(5);
+      return data ?? [];
+    } catch {
+      return [];
+    }
+  })();
+
+  const recentTickets = await (async () => {
+    try {
+      const { data } = await supabase
+        .from('support_tickets')
+        .select('*, profiles(full_name, email), organizations(name)')
+        .order('created_at', { ascending: false })
+        .limit(5);
+      return data ?? [];
+    } catch {
+      return [];
+    }
+  })();
+
+  const mrr = await (async () => {
+    try {
+      const { data } = await supabase
+        .from('subscriptions')
+        .select('billing_cycle, plans(price_monthly, price_annual)')
+        .eq('status', 'active');
+      const total = (data ?? []).reduce((sum: number, sub: Record<string, unknown>) => {
+        const s = sub as unknown as {
+          billing_cycle?: string | null;
+          plans?: { price_monthly?: number | string | null; price_annual?: number | string | null } | null;
+        };
+        const plan = s.plans;
+        if (!plan) return sum;
+        if (s.billing_cycle === 'annual') return sum + Number(plan.price_annual ?? 0) / 12;
+        return sum + Number(plan.price_monthly ?? plan.price_annual ?? 0);
+      }, 0);
+      return Math.round(total * 100) / 100;
+    } catch {
+      return 0;
+    }
+  })();
+
+  const [organizations, users, payments, activeSubscriptions, openTickets, newSignupsThisMonth] =
+    await Promise.all([
+      safeCount(supabase, 'organizations'),
+      safeCount(supabase, 'profiles'),
+      safeCount(supabase, 'payments'),
+      safeCount(supabase, 'subscriptions', { statuses: ['active'] }),
+      safeCount(supabase, 'support_tickets', { statuses: ['open', 'pending'] }),
+      safeCount(supabase, 'organizations', { createdSince: monthStart })
+    ]);
+
+  return {
+    organizations,
+    users,
+    mrr,
+    activeSubscriptions,
+    payments,
+    openTickets,
+    newSignupsThisMonth,
+    recentOrganizations,
+    recentTickets
+  };
 }

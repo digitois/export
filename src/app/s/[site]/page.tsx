@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getSite, getPublicProducts, getPublicBlogPosts } from '@/lib/site/data';
+import { SiteBlocks } from '@/components/site/site-blocks';
 import { InquiryForm } from '@/components/site/inquiry-form';
+import { isSiteBlockType, type SiteBlock } from '@/lib/site/blocks';
 
 export default async function SiteHomePage({ params }: { params: Promise<{ site: string }> }) {
   const { site: identifier } = await params;
@@ -14,6 +16,23 @@ export default async function SiteHomePage({ params }: { params: Promise<{ site:
     getPublicProducts(siteData.organization_id),
     getPublicBlogPosts(siteData.organization_id)
   ]);
+
+  const blocks: SiteBlock[] = Array.isArray(siteData.blocks)
+    ? siteData.blocks
+        .filter((b): b is SiteBlock => Boolean(b) && typeof b.type === 'string' && isSiteBlockType(b.type))
+    : [];
+
+  if (blocks.length > 0) {
+    return (
+      <SiteBlocks
+        blocks={blocks}
+        site={siteData}
+        basePath={base}
+        products={products}
+        posts={posts}
+      />
+    );
+  }
 
   const heroBg = siteData.hero_image_url;
 
