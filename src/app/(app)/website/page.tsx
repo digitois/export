@@ -10,6 +10,7 @@ import {
   Copy,
   ExternalLink,
   Eye,
+  FileText,
   GripVertical,
   LayoutTemplate,
   Loader2,
@@ -19,7 +20,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { api } from '@/lib/api-client';
+import { api, apiData } from '@/lib/api-client';
 import { BLOCK_META, createBlock, isSiteBlockType, type SiteBlock, type SiteBlockType } from '@/lib/site/blocks';
 import { getSiteTheme, SITE_THEME_LIST, type ThemeId } from '@/lib/site/themes';
 import { instantiateTemplate, industryLabel, type SiteTemplate } from '@/lib/site/templates';
@@ -29,6 +30,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle
+} from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { BlockPreview } from '@/components/website-builder/block-preview';
 import { Inspector, cloneValue } from '@/components/website-builder/inspector';
@@ -59,6 +63,15 @@ interface Settings {
   blocks?: SiteBlock[];
 }
 
+interface SitePage {
+  id: string;
+  slug: string;
+  title: string;
+  content?: Record<string, unknown> | null;
+  is_home?: boolean;
+  is_published?: boolean;
+}
+
 const AUTOSAVE_DELAY = 1500;
 
 export default function WebsiteBuilderPage() {
@@ -74,6 +87,12 @@ export default function WebsiteBuilderPage() {
   const [dropIndex, setDropIndex] = useState<number | null>(null);
   const [showGallery, setShowGallery] = useState(false);
   const [applyingTemplate, setApplyingTemplate] = useState<string | null>(null);
+  const [pages, setPages] = useState<SitePage[]>([]);
+  const [activePageId, setActivePageId] = useState<string | null>(null);
+  const [pageModalOpen, setPageModalOpen] = useState(false);
+  const [newPageTitle, setNewPageTitle] = useState('');
+  const [newPageSlug, setNewPageSlug] = useState('');
+  const [savingPage, setSavingPage] = useState(false);
 
   const dragDepth = useRef(0);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -96,6 +115,12 @@ export default function WebsiteBuilderPage() {
       })
       .catch((err) => toast.error(err instanceof Error ? err.message : 'Failed to load website settings'))
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    apiData<SitePage[]>('/api/website/pages')
+      .then((list) => setPages(Array.isArray(list) ? list.filter((p) => !p.is_home) : []))
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -252,7 +277,98 @@ export default function WebsiteBuilderPage() {
     markChanged();
   }
 
-  async function persist(): Promise<{ ok: boolean; error?: string }> {
+  function slugify(value: string) {
+    return value
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 60);
+  }
+
+  async function createPage() {
+    const title = newPageTitle.trim();
+    const slug = newPageSlug.trim() || slugify(title);
+    if (!title || !slug) {
+      toast.error('Enter a page title and slug');
+      return;
+    }
+    if (slug === 'home' || slug === 'about' || slug === 'products' || slug === 'blog' || slug === 'contact') {
+      toast.error('That slug is reserved. Pick another.');
+      return;
+    }
+    setSavingPage(true);
+    try {
+      const created = await apiData<SitePage>('/api/website/pages', {
+        method: 'POST',
+        body: { slug, title, blocks: [] }
+      });
+      setPages((prev) => [...prev, created]);
+      await switchPage(created.id);
+      setPageModalOpen(false);
+      setNewPageTitle('');
+      setNewPageSlug('');
+      toast.success('Page created — add sections to get started');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to create page');
+    } finally {
+      setSavingPage(false);
+    }
+  }
+
+  async function switchPage(pageId: string | null) {
+    if (saveTimer.current) {
+      clearTimeout(saveTimer.current);
+      saveTimer.current = null;
+    }
+    // Save current page blocks before switching
+    if (activePageId) {
+      if (activePageId === 'home') {
+        await persistToSettings();
+      } else {
+        const page = pages.find((p) => p.id === activePageId);
+        if (page) await persistPage(page, blocks);
+      }
+    }
+    if (pageId === null || pageId === 'home') {
+      setActivePageId('home');
+      setBlocks(Array.isArray(settings?.blocks) ? (settings.blocks as SiteBlock[]) : []);
+    } else {
+      const page = pages.find((p) => p.id === pageId);
+      setActivePageId(pageId);
+      const pageBlocks = (page?.content as { blocks?: SiteBlock[] } | null | undefined)?.blocks;
+      setBlocks(Array.isArray(pageBlocks) ? pageBlocks : []);
+    }
+    setSelectedId(null);
+    setDirty(false);
+    setSaveState('saved');
+  }
+
+  async function persistPage(page: SitePage, pageBlocks: SiteBlock[]) {
+    await api('/api/website/pages', {
+      method: 'POST',
+      body: { id: page.id, slug: page.slug, title: page.title, blocks: pageBlocks }
+    });
+  }
+
+  async function deletePage(page: SitePage) {
+    if (!window.confirm(`Delete the “${page.title}” page? This cannot be undone.`)) return;
+    try {
+      await api(`/api/website/pages?id=${page.id}`, { method: 'DELETE' });
+      setPages((prev) => prev.filter((p) => p.id !== page.id));
+      if (activePageId === page.id) {
+        setActivePageId('home');
+        setBlocks(Array.isArray(settings?.blocks) ? (settings.blocks as SiteBlock[]) : []);
+        setSelectedId(null);
+        setDirty(false);
+      }
+      toast.success('Page deleted');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete page');
+    }
+  }
+
+  async function persistToSettings(): Promise<{ ok: boolean; error?: string }> {
     const current = latestRef.current;
     if (!current.settings) return { ok: false, error: 'Settings not loaded yet' };
     setSaveState('saving');
@@ -287,6 +403,24 @@ export default function WebsiteBuilderPage() {
       setSaveState('error');
       return { ok: false, error: err instanceof Error ? err.message : 'Failed to save changes' };
     }
+  }
+
+  async function persist(): Promise<{ ok: boolean; error?: string }> {
+    // Custom page: persist blocks to website_pages
+    if (activePageId && activePageId !== 'home') {
+      const page = pages.find((p) => p.id === activePageId);
+      if (!page) return { ok: false, error: 'Page not found' };
+      try {
+        await persistPage(page, latestRef.current.blocks);
+        setSaveState('saved');
+        setDirty(false);
+        return { ok: true };
+      } catch (err) {
+        setSaveState('error');
+        return { ok: false, error: err instanceof Error ? err.message : 'Failed to save page' };
+      }
+    }
+    return persistToSettings();
   }
 
   async function save() {
@@ -467,6 +601,95 @@ export default function WebsiteBuilderPage() {
           </div>
         </div>
       ) : (
+        <>
+          <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-card p-2">
+            <button
+              type="button"
+              onClick={() => switchPage('home')}
+              className={cn(
+                'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+                activePageId === 'home' || activePageId === null
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              )}
+            >
+              <FileText className="h-3.5 w-3.5" />
+              Home
+            </button>
+            {pages.map((p) => (
+              <div key={p.id} className="group relative inline-flex">
+                <button
+                  type="button"
+                  onClick={() => switchPage(p.id)}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+                    activePageId === p.id
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  )}
+                >
+                  {p.title}
+                </button>
+                <button
+                  type="button"
+                  title={`Delete ${p.title}`}
+                  onClick={() => deletePage(p)}
+                  className="absolute -right-1 -top-1 hidden h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] text-destructive-foreground group-hover:flex"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => setPageModalOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-md border border-dashed px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              New page
+            </button>
+            <span className="ml-auto hidden text-xs text-muted-foreground sm:block">
+              Editing: {activePageId === 'home' || activePageId === null ? 'Home page' : pages.find((p) => p.id === activePageId)?.title}
+            </span>
+          </div>
+
+          <Dialog open={pageModalOpen} onOpenChange={setPageModalOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create a new page</DialogTitle>
+                <DialogDescription>Add a page like About, Gallery, or Services — build it with the same sections.</DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-2">
+                <div className="space-y-2">
+                  <Label htmlFor="new-page-title">Page title *</Label>
+                  <Input
+                    id="new-page-title"
+                    value={newPageTitle}
+                    onChange={(e) => setNewPageTitle(e.target.value)}
+                    placeholder="e.g. Our Story"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="new-page-slug">URL slug</Label>
+                  <Input
+                    id="new-page-slug"
+                    value={newPageSlug}
+                    onChange={(e) => setNewPageSlug(slugify(e.target.value))}
+                    placeholder={newPageTitle ? slugify(newPageTitle) : 'our-story'}
+                  />
+                  <p className="text-xs text-muted-foreground">Leave blank to auto-generate from the title.</p>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setPageModalOpen(false)}>Cancel</Button>
+                <Button onClick={createPage} disabled={savingPage || !newPageTitle.trim()}>
+                  {savingPage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                  Create page
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
         <div className="grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)_340px]">
           <div className="lg:sticky lg:top-24 lg:self-start">
             <Palette onAdd={(type) => insertBlock(type)} />
@@ -543,6 +766,7 @@ export default function WebsiteBuilderPage() {
             <SiteSettingsCard settings={settings} onChange={updateSettings} />
           </div>
         </div>
+        </>
       )}
     </div>
   );

@@ -184,3 +184,54 @@ export async function getPublicBlogPost(orgId: string, slug: string): Promise<Pu
     published_at: row.published_at
   };
 }
+
+export interface PublicPage {
+  id: string;
+  slug: string;
+  title: string;
+  content: { blocks?: { id: string; type: string; props: Record<string, unknown> }[] | null } | null;
+  sort_order: number;
+}
+
+export async function getPublicPages(orgId: string): Promise<PublicPage[]> {
+  const supabase = createSiteClient();
+
+  const { data } = await supabase
+    .from('website_pages')
+    .select('id, slug, title, content, sort_order')
+    .eq('organization_id', orgId)
+    .eq('is_published', true)
+    .eq('is_home', false)
+    .order('sort_order', { ascending: true });
+
+  return (data as unknown as PublicPage[] | null ?? []).map((row) => ({
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    content: row.content ?? null,
+    sort_order: row.sort_order
+  }));
+}
+
+export async function getPublicPage(orgId: string, slug: string): Promise<PublicPage | null> {
+  const supabase = createSiteClient();
+
+  const { data } = await supabase
+    .from('website_pages')
+    .select('id, slug, title, content, sort_order')
+    .eq('organization_id', orgId)
+    .eq('slug', slug)
+    .eq('is_published', true)
+    .eq('is_home', false)
+    .maybeSingle();
+
+  if (!data) return null;
+  const row = data as unknown as PublicPage;
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    content: row.content ?? null,
+    sort_order: row.sort_order
+  };
+}
