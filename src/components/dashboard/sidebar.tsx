@@ -7,7 +7,7 @@ import {
   Folder, Newspaper, Sparkles, Send, BarChart3, Globe, Building2,
   UserCog, Settings, SearchCode, Ship, Calculator, PackageCheck, Award,
   Wallet, Warehouse, Truck, Package2, Target, FilePen, Bell, Briefcase,
-  CalendarCheck, CalendarDays, Banknote, type LucideIcon
+  CalendarCheck, CalendarDays, Banknote, CreditCard, type LucideIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Logo } from '@/components/logo';
@@ -41,6 +41,7 @@ const NAV: Array<{ href: string; label: string; icon: LucideIcon }> = [
   { href: '/website', label: 'Website', icon: Globe },
   { href: '/company', label: 'Company Profile', icon: Building2 },
   { href: '/team', label: 'Team', icon: UserCog },
+  { href: '/billing', label: 'Billing & Payments', icon: CreditCard },
   { href: '/hrm', label: 'HRM', icon: Briefcase },
   { href: '/hrm/attendance', label: 'Attendance', icon: CalendarCheck },
   { href: '/hrm/leave', label: 'Leave', icon: CalendarDays },

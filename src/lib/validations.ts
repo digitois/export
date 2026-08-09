@@ -638,3 +638,42 @@ export const payrollRunSchema = z.object({
   runDate: z.string().optional().nullable(),
   notes: z.string().optional().nullable()
 });
+
+export const paymentGatewaySchema = z.object({
+  provider: z.enum(['razorpay', 'stripe', 'phonepe', 'cashfree', 'instamojo']),
+  enabled: z.boolean().optional(),
+  testMode: z.boolean().optional(),
+  config: z
+    .object({
+      keyId: z.string().optional(),
+      keySecret: z.string().optional(),
+      merchantId: z.string().optional(),
+      salt: z.string().optional(),
+      saltIndex: z.string().optional(),
+      webhookSecret: z.string().optional(),
+      authToken: z.string().optional(),
+      publishableKey: z.string().optional()
+    })
+    .optional()
+});
+
+export const checkoutGatewaySchema = z.object({
+  type: z.enum(['order']),
+  gateway: z.enum(['razorpay', 'stripe', 'phonepe', 'cashfree', 'instamojo']),
+  amount: z.coerce.number().positive(),
+  currency: z.string().length(3).default('INR'),
+  receipt: z.string().optional(),
+  customerEmail: z.string().email().optional(),
+  customerName: z.string().optional(),
+  customerPhone: z.string().optional()
+});
+
+export const checkoutSchema = z.object({
+  type: z.enum(['order', 'subscription']),
+  amount: z.coerce.number().positive().optional(),
+  currency: z.string().length(3).default('INR'),
+  receipt: z.string().optional(),
+  planId: z.string().uuid().optional(),
+  cycle: z.enum(['monthly', 'annual']).default('monthly'),
+  totalCount: z.coerce.number().int().min(1).max(120).default(12)
+});
