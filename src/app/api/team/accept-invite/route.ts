@@ -14,8 +14,8 @@ export async function POST(request: Request) {
     const supabase = await createClient();
     const result = await acceptInvitation(supabase, token, user.id);
 
-    if (result.error) return NextResponse.json({ error: result.error }, { status: 400 });
-    return NextResponse.json({ data: { organizationId: result.organizationId } });
+    if (result.error) return NextResponse.json({ error: result.error instanceof Error ? result.error.message : 'Failed to accept invitation' }, { status: 400 });
+    return NextResponse.json({ data: { organizationId: result.data?.organizationId } });
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Failed to accept invitation' },

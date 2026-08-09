@@ -41,6 +41,32 @@ export async function setOrganizationStatus(supabase: SupabaseClient, id: string
   return { data, error };
 }
 
+export async function updateOrganizationWhiteLabel(
+  supabase: SupabaseClient,
+  id: string,
+  input: {
+    whiteLabelEnabled?: boolean;
+    whiteLabelAccent?: string | null;
+    whiteLabelLogoUrl?: string | null;
+    whiteLabelFaviconUrl?: string | null;
+    customDomain?: string | null;
+  }
+) {
+  const { data, error } = await supabase
+    .from('organizations')
+    .update({
+      white_label_enabled: input.whiteLabelEnabled,
+      white_label_accent: input.whiteLabelAccent ?? null,
+      white_label_logo_url: input.whiteLabelLogoUrl ?? null,
+      white_label_favicon_url: input.whiteLabelFaviconUrl ?? null,
+      custom_domain: input.customDomain ?? null,
+    })
+    .eq('id', id)
+    .select()
+    .single();
+  return { data, error };
+}
+
 export async function listUsers(supabase: SupabaseClient, opts: { page: number; pageSize: number; q?: string }) {
   let query = supabase
     .from('profiles')
