@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getCurrentUser, getProfile, getOrgContext } from '@/lib/auth';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { UserNav } from '@/components/dashboard/user-nav';
+import { OrgSwitcher } from '@/components/org/org-switcher';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const [user, profile, org] = await Promise.all([getCurrentUser(), getProfile(), getOrgContext()]);
@@ -22,7 +23,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <div className="md:hidden">
             <span className="font-display text-sm font-semibold">{org.context.organizationName}</span>
           </div>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-3">
+            <OrgSwitcher currentOrgId={org.context.organizationId} onSwitch={() => window.location.reload()} />
             <UserNav
               user={{
                 id: user.id,

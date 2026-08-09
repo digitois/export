@@ -11,6 +11,7 @@ import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
@@ -47,6 +48,12 @@ interface OrganizationDetail {
   status: string;
   default_currency?: string;
   created_at: string;
+  white_label_enabled?: boolean;
+  white_label_accent?: string | null;
+  white_label_logo_url?: string | null;
+  white_label_favicon_url?: string | null;
+  custom_domain?: string | null;
+  custom_domain_verified?: boolean;
   plans?: { name?: string; code?: string; price_monthly?: number; currency?: string } | null;
   subscriptions?: Array<{ id: string; status?: string; billing_cycle?: string; plan_id?: string | null }> | null;
   organization_members?: Array<{
@@ -117,6 +124,142 @@ export default function AdminOrganizationsPage() {
     } finally {
       setChangingStatus(null);
     }
+  }
+
+  async function updateWhiteLabel(patch: Record<string, unknown>) {
+    if (!detail) return;
+    try {
+      await api(`/api/admin/organizations/${detail.id}`, { method: 'PATCH', body: patch });
+      setDetail((prev) => prev ? { ...prev, ...patch } : null);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to update white-label');
+    }
+  }
+
+  function renderDetail() {
+    if (detailLoading || !detail) {
+      return <Loading label="Loading details..." />;
+    }
+
+    return (
+      <div className="space-y-4">
+        <div className="grid gap-2 rounded-lg border p-4 sm:grid-cols-2">
+          <div>
+            <p className="text-xs text-muted-foreground">Slug</p>
+            <p className="text-sm font-medium">/{detail.slug}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Status</p>
+            <StatusBadge status={detail.status} />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Plan</p>
+            <p className="text-sm font-medium">{detail.plans?.name ?? detail.plans?.code ?? '-'}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Currency</p>
+            <p className="text-sm font-medium">{detail.default_currency ?? '-'}</p>
+          </div>
+        </div>
+
+        <div>
+          <p className="mb-2 text-sm font-medium">Members</p>
+          {(detail.organization_members?.length ?? 0) === 0 ? (
+            <p className="text-sm text-muted-foreground">No members</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {detail.organization_members?.map((m) => (
+                  <TableRow key={m.id}>
+                    <TableCell>{m.profiles?.full_name ?? m.profiles?.email ?? '-'}</TableCell>
+                    <TableCell className="capitalize">{m.role ?? '-'}</TableCell>
+                    <TableCell className="capitalize">{m.status ?? '-'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </div>
+
+        <div>
+          <p className="mb-2 text-sm font-medium">Subscriptions</p>
+          {(detail.subscriptions?.length ?? 0) === 0 ? (
+            <p className="text-sm text-muted-foreground">No subscriptions</p>
+          ) : (
+            <ul className="space-y-1">
+              {detail.subscriptions?.map((sub) => (
+                <li key={sub.id} className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
+                  <span className="capitalize">{sub.billing_cycle ?? 'monthly'}</span>
+                  <StatusBadge status={sub.status ?? 'unknown'} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div>
+          <p className="mb-2 text-sm font-medium">White-label</p>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="flex items-center justify-between rounded-md border p-3">
+              <div>
+                <p className="text-sm font-medium">Enable white-label</p>
+                <p className="text-xs text-muted-foreground">Allow custom branding for this tenant</p>
+              </div>
+              <Switch
+                checked={detail.white_label_enabled ?? false}
+                onCheckedChange={(v) => updateWhiteLabel({ whiteLabelEnabled: v })}
+              />
+            </div>
+            <div className="space-y-2">
+              <div>
+                <p className="text-xs text-muted-foreground">Accent color</p>
+                <Input
+                  type="color"
+                  value={detail.white_label_accent ?? '#3b82f6'}
+                  onChange={(e) => updateWhiteLabel({ whiteLabelAccent: e.target.value })}
+                />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Logo URL</p>
+                <Input
+                  placeholder="https://example.com/logo.png"
+                  value={detail.white_label_logo_url ?? ''}
+                  onChange={(e) => updateWhiteLabel({ whiteLabelLogoUrl: e.target.value })}
+                />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Favicon URL</p>
+                <Input
+                  placeholder="https://example.com/favicon.ico"
+                  value={detail.white_label_favicon_url ?? ''}
+                  onChange={(e) => updateWhiteLabel({ whiteLabelFaviconUrl: e.target.value })}
+                />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Custom domain</p>
+                <Input
+                  placeholder="app.customer.com"
+                  value={detail.custom_domain ?? ''}
+                  onChange={(e) => updateWhiteLabel({ customDomain: e.target.value })}
+                />
+              </div>
+              {detail.custom_domain && (
+                <div className="flex items-center gap-2 text-sm">
+                  <span>{detail.custom_domain_verified ? '✓ Verified' : 'Pending verification'}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -231,72 +374,7 @@ export default function AdminOrganizationsPage() {
             <DialogTitle>Organization details</DialogTitle>
             <DialogDescription>{detail?.name ?? 'Loading...'}</DialogDescription>
           </DialogHeader>
-          {detailLoading || !detail ? (
-            <Loading label="Loading details..." />
-          ) : (
-            <div className="space-y-4">
-              <div className="grid gap-2 rounded-lg border p-4 sm:grid-cols-2">
-                <div>
-                  <p className="text-xs text-muted-foreground">Slug</p>
-                  <p className="text-sm font-medium">/{detail.slug}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Status</p>
-                  <StatusBadge status={detail.status} />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Plan</p>
-                  <p className="text-sm font-medium">{detail.plans?.name ?? detail.plans?.code ?? '-'}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Currency</p>
-                  <p className="text-sm font-medium">{detail.default_currency ?? '-'}</p>
-                </div>
-              </div>
-
-              <div>
-                <p className="mb-2 text-sm font-medium">Members</p>
-                {(detail.organization_members?.length ?? 0) === 0 ? (
-                  <p className="text-sm text-muted-foreground">No members</p>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {detail.organization_members?.map((m) => (
-                        <TableRow key={m.id}>
-                          <TableCell>{m.profiles?.full_name ?? m.profiles?.email ?? '-'}</TableCell>
-                          <TableCell className="capitalize">{m.role ?? '-'}</TableCell>
-                          <TableCell className="capitalize">{m.status ?? '-'}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
-              </div>
-
-              <div>
-                <p className="mb-2 text-sm font-medium">Subscriptions</p>
-                {(detail.subscriptions?.length ?? 0) === 0 ? (
-                  <p className="text-sm text-muted-foreground">No subscriptions</p>
-                ) : (
-                  <ul className="space-y-1">
-                    {detail.subscriptions?.map((sub) => (
-                      <li key={sub.id} className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
-                        <span className="capitalize">{sub.billing_cycle ?? 'monthly'}</span>
-                        <StatusBadge status={sub.status ?? 'unknown'} />
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div>
-          )}
+          {renderDetail()}
         </DialogContent>
       </Dialog>
     </div>
