@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
 import { loginSchema } from '@/lib/validations';
+import { safeRedirectPath } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,6 +25,7 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(searchParams.get('error'));
   const [loading, setLoading] = useState(false);
+  const nextPath = safeRedirectPath(searchParams.get('next'));
 
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
@@ -43,7 +45,7 @@ export default function LoginPage() {
     }
 
     toast.success('Welcome back!');
-    router.push('/dashboard');
+    router.push(nextPath);
     router.refresh();
   }
 
@@ -52,7 +54,7 @@ export default function LoginPage() {
     const supabase = createClient();
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` }
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}` }
     });
     if (oauthError) setError(oauthError.message);
   }

@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { api } from '@/lib/api-client';
 import { signupSchema } from '@/lib/validations';
+import { safeRedirectPath } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,8 +25,12 @@ interface SignupResponse {
 
 export default function SignupPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  // An invited user should be routed back to the invitation (join an existing
+  // team) instead of org onboarding (which creates a new organization).
+  const nextPath = safeRedirectPath(searchParams.get('next'), '/onboarding');
 
   const form = useForm<SignupValues>({
     resolver: zodResolver(signupSchema),
@@ -40,7 +45,7 @@ export default function SignupPage() {
 
       if (data.session) {
         toast.success('Account created!');
-        router.push('/onboarding');
+        router.push(nextPath);
         router.refresh();
       } else {
         toast.success('Check your email to confirm your account.');

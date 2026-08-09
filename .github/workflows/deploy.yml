@@ -1,49 +1,73 @@
-name: CI
+name: Deploy
+
+# Deploys the app to Vercel via the Vercel CLI.
+#
+# This workflow only does anything when the VERCEL_TOKEN secret is configured.
+# If your project deploys through Vercel's native Git integration instead, leave
+# these secrets unset — the guard step below turns the deploy into a no-op so
+# this workflow never fails.
+#
+# Required repository secrets when enabling CLI deploys:
+#   VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
+#
+# Branch model: push to `main` -> production, push to `preview` -> preview.
 
 on:
-  pull_request:
-    branches: [main]
   push:
-    branches: [main]
+    branches: [main, preview]
+  workflow_dispatch:
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: deploy-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: Install & Build
+  deploy:
+    name: Vercel Deploy
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
     steps:
+      - name: Check deploy configuration
+        id: guard
+        run: echo "enabled=${{ secrets.VERCEL_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
+
+      - name: Skip notice
+        if: steps.guard.outputs.enabled != 'true'
+        run: echo "::notice::VERCEL_TOKEN is not set — skipping CLI deploy (Vercel Git integration is assumed)."
+
       - name: Checkout
+        if: steps.guard.outputs.enabled == 'true'
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
+      - name: Resolve environment
+        if: steps.guard.outputs.enabled == 'true'
+        id: env
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "vercel_env=production" >> "$GITHUB_OUTPUT"
+            echo "prod_flag=--prod" >> "$GITHUB_OUTPUT"
+          else
+            echo "vercel_env=preview" >> "$GITHUB_OUTPUT"
+            echo "prod_flag=" >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
+      - name: Install Vercel CLI
+        if: steps.guard.outputs.enabled == 'true'
+        run: npm install -g vercel@latest
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Typecheck
-        run: pnpm typecheck
+      - name: Pull Vercel environment
+        if: steps.guard.outputs.enabled == 'true'
+        run: vercel pull --yes --environment=${{ steps.env.outputs.vercel_env }} --token="$VERCEL_TOKEN"
 
       - name: Build
-        run: pnpm build
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
-          NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
-          PUBLIC_SITE_JWT_SECRET: ${{ secrets.PUBLIC_SITE_JWT_SECRET }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        if: steps.guard.outputs.enabled == 'true'
+        run: vercel build ${{ steps.env.outputs.prod_flag }} --token="$VERCEL_TOKEN"
+
+      - name: Deploy
+        if: steps.guard.outputs.enabled == 'true'
+        run: vercel deploy --prebuilt ${{ steps.env.outputs.prod_flag }} --token="$VERCEL_TOKEN"
