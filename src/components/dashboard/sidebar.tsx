@@ -38,15 +38,15 @@ export function Sidebar({ organizationName, isSuperAdmin }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <div className="flex h-full w-64 flex-col border-r bg-background">
-      <div className="flex h-14 items-center border-b px-4">
+    <div className="flex h-full w-64 flex-col border-r border-line bg-background">
+      <div className="flex h-14 items-center border-b border-line px-4">
         <Link href="/dashboard">
           <Logo />
         </Link>
       </div>
 
       <div className="px-4 py-3">
-        <p className="truncate rounded-md bg-muted px-3 py-2 text-sm font-medium">{organizationName}</p>
+        <p className="truncate rounded-lg border border-line bg-canvas px-3 py-2 text-sm font-medium">{organizationName}</p>
       </div>
 
       <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 pb-4 scrollbar-thin">
@@ -60,10 +60,10 @@ export function Sidebar({ organizationName, isSuperAdmin }: SidebarProps) {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-150',
                 active
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  ? 'bg-accent-weak text-primary'
+                  : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
               )}
             >
               <item.icon className="h-4 w-4 shrink-0" />
@@ -74,10 +74,10 @@ export function Sidebar({ organizationName, isSuperAdmin }: SidebarProps) {
       </nav>
 
       {isSuperAdmin && (
-        <div className="border-t p-3">
+        <div className="border-t border-line p-3">
           <Link
             href="/admin"
-            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
           >
             <Settings className="h-4 w-4" />
             Admin Panel

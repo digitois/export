@@ -18,7 +18,7 @@ export function StatCard({ title, value, icon: Icon, description, className, tre
     <Card className={cn('group', className)}>
       <CardContent className="p-5">
         <div className="flex items-center justify-between">
-          <p className="text-sm font-medium text-muted-foreground">{title}</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{title}</p>
           {Icon && (
             <div className="rounded-lg bg-accent-weak p-2 text-primary transition-colors group-hover:bg-accent-weak/70">
               <Icon className="h-4 w-4" />
