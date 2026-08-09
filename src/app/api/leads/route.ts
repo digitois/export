@@ -16,7 +16,8 @@ export async function GET(request: Request) {
       status: params.status,
       priority: params.priority,
       source: params.source,
-      assignedTo: params.assignedTo
+      assignedTo: params.assignedTo,
+      stageId: params.stageId
     });
 
     return paginated(items, count, parsed.page, parsed.pageSize);

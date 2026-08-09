@@ -49,7 +49,8 @@ const STATUS_STYLES: Record<string, { variant: 'default' | 'secondary' | 'destru
   no: { variant: 'secondary', label: 'No' },
   in: { variant: 'success', label: 'In' },
   out: { variant: 'info', label: 'Out' },
-  adjustment: { variant: 'warning', label: 'Adjustment' }
+  adjustment: { variant: 'warning', label: 'Adjustment' },
+  done: { variant: 'success', label: 'Done' }
 };
 
 const DOT: Record<string, string> = {

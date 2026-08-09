@@ -1,6 +1,6 @@
 import { requireAuth, handleApiError, ok, writeAudit, getIp } from '@/lib/api';
 import { leadSchema } from '@/lib/validations';
-import { getLead, updateLead, deleteLead, updateLeadStatus, listLeadActivities, createLeadActivity } from '@/lib/services/leads';
+import { getLead, updateLead, deleteLead, updateLeadStatus, moveLeadToStage, listLeadActivities, createLeadActivity } from '@/lib/services/leads';
 import { logActivity } from '@/lib/api';
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -30,7 +30,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (!prev.data) return ok({ error: 'Lead not found' }, { status: 404 });
 
     let data;
-    if (body.status && Object.keys(body).length === 1) {
+    if (body.stageId && Object.keys(body).length === 1) {
+      const result = await moveLeadToStage(ctx.supabase, ctx.organizationId, id, body.stageId);
+      data = result.data;
+    } else if (body.status && Object.keys(body).length === 1) {
       const result = await updateLeadStatus(ctx.supabase, ctx.organizationId, id, body.status);
       data = result.data;
     } else {
@@ -39,7 +42,21 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       data = result.data;
     }
 
-    if (body.status && body.status !== prev.data.status) {
+    if (body.stageId && body.stageId !== prev.data.stage_id) {
+      await createLeadActivity(ctx.supabase, ctx.organizationId, ctx.userId, {
+        leadId: id,
+        type: 'status_change',
+        description: `Moved to stage`
+      });
+      await logActivity(ctx.supabase, {
+        organizationId: ctx.organizationId,
+        userId: ctx.userId,
+        type: 'status_changed',
+        entityType: 'lead',
+        entityId: id,
+        description: `Lead ${prev.data.buyer_name}: moved to new stage`
+      });
+    } else if (body.status && body.status !== prev.data.status) {
       await createLeadActivity(ctx.supabase, ctx.organizationId, ctx.userId, {
         leadId: id,
         type: 'status_change',

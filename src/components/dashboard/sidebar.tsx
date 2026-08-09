@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Users, ReceiptText, FileText, Package, Contact,
   Folder, Newspaper, Sparkles, Send, BarChart3, Globe, Building2,
   UserCog, Settings, SearchCode, Ship, Calculator, PackageCheck, Award,
-  Wallet, Warehouse, Truck, Package2, type LucideIcon
+  Wallet, Warehouse, Truck, Package2, Target, FilePen, Bell, type LucideIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Logo } from '@/components/logo';
@@ -14,6 +14,10 @@ import { Logo } from '@/components/logo';
 const NAV: Array<{ href: string; label: string; icon: LucideIcon }> = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/leads', label: 'Leads', icon: Users },
+  { href: '/crm', label: 'CRM Pipeline', icon: Target },
+  { href: '/follow-ups', label: 'Follow-ups', icon: FilePen },
+  { href: '/reminders', label: 'Reminders', icon: Bell },
+  { href: '/contracts', label: 'Contracts', icon: FilePen },
   { href: '/quotations', label: 'Quotations', icon: ReceiptText },
   { href: '/invoices', label: 'Invoices', icon: FileText },
   { href: '/shipments', label: 'Shipments', icon: Ship },

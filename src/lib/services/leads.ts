@@ -9,10 +9,11 @@ export interface LeadListOptions {
   priority?: string;
   source?: string;
   assignedTo?: string;
+  stageId?: string;
 }
 
 const LEAD_SELECT =
-  '*, assigned_to:profiles!leads_assigned_to_fkey(full_name, email), created_by:profiles!leads_created_by_fkey(full_name, email)';
+  '*, assigned_to:profiles!leads_assigned_to_fkey(full_name, email), created_by:profiles!leads_created_by_fkey(full_name, email), stage:lead_stages(id, name, color)';
 
 export async function listLeads(supabase: SupabaseClient, organizationId: string, opts: LeadListOptions) {
   let query = supabase
@@ -25,6 +26,7 @@ export async function listLeads(supabase: SupabaseClient, organizationId: string
   if (opts.priority) query = query.eq('priority', opts.priority);
   if (opts.source) query = query.eq('source', opts.source);
   if (opts.assignedTo) query = query.eq('assigned_to', opts.assignedTo);
+  if (opts.stageId) query = query.eq('stage_id', opts.stageId);
   if (opts.q) {
     query = query.or(`buyer_name.ilike.%${opts.q}%,company_name.ilike.%${opts.q}%,email.ilike.%${opts.q}%`);
   }
@@ -84,6 +86,33 @@ export async function updateLeadStatus(
   const patch: Record<string, unknown> = { status };
   if (status === 'won') patch.won_at = new Date().toISOString();
   if (status === 'lost') patch.lost_at = new Date().toISOString();
+  const { data, error } = await supabase
+    .from('leads')
+    .update(patch)
+    .eq('organization_id', organizationId)
+    .eq('id', id)
+    .select()
+    .single();
+  return { data, error };
+}
+
+export async function moveLeadToStage(
+  supabase: SupabaseClient,
+  organizationId: string,
+  id: string,
+  stageId: string
+) {
+  // Get the stage to determine if it's won/lost
+  const { data: stage } = await supabase
+    .from('lead_stages')
+    .select('is_won, is_lost')
+    .eq('id', stageId)
+    .single();
+
+  const patch: Record<string, unknown> = { stage_id: stageId };
+  if (stage?.is_won) patch.status = 'won';
+  if (stage?.is_lost) patch.status = 'lost';
+
   const { data, error } = await supabase
     .from('leads')
     .update(patch)
