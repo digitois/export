@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { getSite, type PublicSite } from '@/lib/site/data';
+import { getSite, getPublicPages, type PublicSite, type PublicPage } from '@/lib/site/data';
 import { getSiteTheme } from '@/lib/site/themes';
 import { SiteHeader } from '@/components/site/site-header';
 import { SiteFooter } from '@/components/site/site-footer';
@@ -28,7 +28,10 @@ export async function generateMetadata({ params }: SiteLayoutProps): Promise<Met
 
 export default async function SiteLayout({ children, params }: SiteLayoutProps) {
   const { site: identifier } = await params;
-  const siteData = await getSite(decodeURIComponent(identifier));
+  const [siteData, pages] = await Promise.all([
+    getSite(decodeURIComponent(identifier)),
+    getPublicPages(decodeURIComponent(identifier))
+  ]);
 
   if (!siteData) notFound();
 
@@ -54,9 +57,9 @@ export default async function SiteLayout({ children, params }: SiteLayoutProps) 
       {siteData.announcement_bar && (
         <div className="bg-black px-4 py-2 text-center text-sm text-white">{siteData.announcement_bar}</div>
       )}
-      <SiteHeader site={siteData} basePath={base} />
+      <SiteHeader site={siteData} basePath={base} pages={pages} />
       <main>{children}</main>
-      <SiteFooter site={siteData} basePath={base} />
+      <SiteFooter site={siteData} basePath={base} pages={pages} />
       <SiteVisitTracker siteId={siteData.organization_id} />
     </div>
   );

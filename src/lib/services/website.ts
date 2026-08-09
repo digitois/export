@@ -41,19 +41,20 @@ export async function listWebsitePages(supabase: SupabaseClient, organizationId:
 }
 
 export async function upsertWebsitePage(supabase: SupabaseClient, organizationId: string, payload: {
-  id?: string; slug: string; title: string; content?: Record<string, unknown>; isHome?: boolean;
+  id?: string; slug: string; title: string; content?: Record<string, unknown>; isHome?: boolean; isPublished?: boolean;
 }) {
   const body = {
     organization_id: organizationId,
     slug: payload.slug,
     title: payload.title,
     content: payload.content ?? {},
-    is_home: payload.isHome ?? false
+    is_home: payload.isHome ?? false,
+    is_published: payload.isPublished ?? true
   };
   if (payload.id) {
     const { data, error } = await supabase
       .from('website_pages')
-      .update({ slug: body.slug, title: body.title, content: body.content, is_home: body.is_home })
+      .update({ slug: body.slug, title: body.title, content: body.content, is_home: body.is_home, is_published: body.is_published })
       .eq('id', payload.id)
       .eq('organization_id', organizationId)
       .select()

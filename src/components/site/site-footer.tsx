@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import type { PublicSite } from '@/lib/site/data';
+import type { PublicSite, PublicPage } from '@/lib/site/data';
 
-export function SiteFooter({ site, basePath }: { site: PublicSite; basePath: string }) {
+export function SiteFooter({ site, basePath, pages = [] }: { site: PublicSite; basePath: string; pages?: PublicPage[] }) {
   const base = basePath;
   const markets = site.export_markets ?? [];
 
@@ -28,6 +28,11 @@ export function SiteFooter({ site, basePath }: { site: PublicSite; basePath: str
             <li><Link href={`${base}/about`} className="hover:text-zinc-900">About Us</Link></li>
             <li><Link href={`${base}/blog`} className="hover:text-zinc-900">Blog</Link></li>
             <li><Link href={`${base}/contact`} className="hover:text-zinc-900">Contact</Link></li>
+            {pages.map((p) => (
+              <li key={p.id}>
+                <Link href={`${base}/${p.slug}`} className="hover:text-zinc-900">{p.title}</Link>
+              </li>
+            ))}
           </ul>
         </div>
 
