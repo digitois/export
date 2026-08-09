@@ -427,6 +427,22 @@ export const certificateOfOriginSchema = z.object({
   items: z.array(certificateItemSchema).min(1, 'Add at least one item')
 });
 
+export const expenseSchema = z.object({
+  category: z
+    .enum([
+      'raw_materials', 'packaging', 'freight', 'customs', 'warehousing',
+      'marketing', 'travel', 'office', 'salaries', 'commission',
+      'insurance', 'bank_charges', 'utilities', 'other'
+    ])
+    .default('other'),
+  vendor: z.string().optional().nullable(),
+  amount: z.coerce.number().min(0.0001, 'Enter an amount'),
+  currency: z.string().length(3).default('USD'),
+  expenseDate: z.string().default(() => new Date().toISOString().slice(0, 10)),
+  notes: z.string().optional().nullable(),
+  attachmentUrl: z.string().url().optional().or(z.literal('')).nullable()
+});
+
 export const supportTicketSchema = z.object({
   subject: z.string().min(1).max(200),
   description: z.string().min(1).max(10000),
