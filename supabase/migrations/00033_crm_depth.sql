@@ -133,7 +133,6 @@ create policy contracts_delete_org on public.contracts
 do $$
 declare
   org_rec record;
-  stage_rec record;
   stages constant text[][] := array[
     array['New', '#64748b', '0', 'true', 'false', 'false'],
     array['Contacted', '#0ea5e9', '1', 'false', 'false', 'false'],
@@ -143,12 +142,12 @@ declare
     array['Won', '#16a34a', '5', 'false', 'true', 'false'],
     array['Lost', '#dc2626', '6', 'false', 'false', 'true']
   ];
+  i int;
 begin
   for org_rec in select id, created_by from public.organizations loop
     for i in 1..array_length(stages, 1) loop
-      stage_rec := stages[i];
       insert into public.lead_stages (organization_id, name, color, sort_order, is_default, is_won, is_lost, created_by)
-      values (org_rec.id, stage_rec[1], stage_rec[2], stage_rec[3]::int, stage_rec[4]::boolean, stage_rec[5]::boolean, stage_rec[6]::boolean, org_rec.created_by)
+      values (org_rec.id, stages[i][1], stages[i][2], stages[i][3]::int, stages[i][4]::boolean, stages[i][5]::boolean, stages[i][6]::boolean, org_rec.created_by)
       on conflict (organization_id, name) do nothing;
     end loop;
   end loop;
