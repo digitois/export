@@ -443,6 +443,64 @@ export const expenseSchema = z.object({
   attachmentUrl: z.string().url().optional().or(z.literal('')).nullable()
 });
 
+export const warehouseSchema = z.object({
+  name: z.string().min(1, 'Warehouse name is required').max(200),
+  location: z.string().optional().nullable(),
+  isDefault: z.boolean().default(false)
+});
+
+export const stockMovementSchema = z.object({
+  productId: z.string().uuid(),
+  warehouseId: z.string().uuid(),
+  type: z.enum(['in', 'out', 'adjustment']),
+  quantity: z.coerce.number().min(0.0001),
+  referenceType: z.string().optional().nullable(),
+  referenceId: z.string().uuid().optional().nullable(),
+  notes: z.string().optional().nullable(),
+  occurredAt: z.string().default(() => new Date().toISOString())
+});
+
+export const supplierSchema = z.object({
+  name: z.string().min(1, 'Supplier name is required').max(200),
+  contactPerson: z.string().optional().nullable(),
+  email: z.string().email().optional().or(z.literal('')).nullable(),
+  phone: z.string().optional().nullable(),
+  address: z.string().optional().nullable(),
+  country: z.string().optional().nullable(),
+  gstNumber: z.string().optional().nullable(),
+  paymentTerms: z.string().optional().nullable(),
+  currency: z.string().length(3).default('USD'),
+  notes: z.string().optional().nullable()
+});
+
+export const purchaseOrderItemSchema = z.object({
+  productId: z.string().uuid().optional().nullable(),
+  description: z.string().min(1).max(1000),
+  hsnCode: z.string().optional().nullable(),
+  quantity: z.coerce.number().min(0.0001),
+  unit: z.string().optional().nullable(),
+  unitPrice: z.coerce.number().min(0),
+  taxRate: z.coerce.number().min(0).max(100).default(0)
+});
+
+export const purchaseOrderSchema = z.object({
+  supplierId: z.string().uuid().optional().nullable(),
+  supplierName: z.string().min(1, 'Supplier name is required').max(200),
+  supplierCompany: z.string().optional().nullable(),
+  supplierAddress: z.string().optional().nullable(),
+  supplierCountry: z.string().optional().nullable(),
+  warehouseId: z.string().uuid().optional().nullable(),
+  currency: z.string().length(3).default('USD'),
+  orderDate: z.string().default(() => new Date().toISOString().slice(0, 10)),
+  expectedDate: z.string().optional().nullable(),
+  discount: z.coerce.number().min(0).default(0),
+  taxRate: z.coerce.number().min(0).max(100).default(0),
+  shippingCharges: z.coerce.number().min(0).default(0),
+  notes: z.string().optional().nullable(),
+  terms: z.string().optional().nullable(),
+  items: z.array(purchaseOrderItemSchema).min(1, 'Add at least one item')
+});
+
 export const supportTicketSchema = z.object({
   subject: z.string().min(1).max(200),
   description: z.string().min(1).max(10000),
