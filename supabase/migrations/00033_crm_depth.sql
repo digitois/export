@@ -130,25 +130,17 @@ create policy contracts_delete_org on public.contracts
   for delete using (public.has_role(organization_id, 'manager'));
 
 -- Seed default pipeline stages for existing orgs (idempotent)
-do $$
-declare
-  org_rec record;
-  stages constant text[][] := array[
-    array['New', '#64748b', '0', 'true', 'false', 'false'],
-    array['Contacted', '#0ea5e9', '1', 'false', 'false', 'false'],
-    array['Qualified', '#22c55e', '2', 'false', 'false', 'false'],
-    array['Proposal Sent', '#f59e0b', '3', 'false', 'false', 'false'],
-    array['Negotiation', '#8b5cf6', '4', 'false', 'false', 'false'],
-    array['Won', '#16a34a', '5', 'false', 'true', 'false'],
-    array['Lost', '#dc2626', '6', 'false', 'false', 'true']
-  ];
-  i int;
-begin
-  for org_rec in select id, created_by from public.organizations loop
-    for i in 1..array_length(stages, 1) loop
-      insert into public.lead_stages (organization_id, name, color, sort_order, is_default, is_won, is_lost, created_by)
-      values (org_rec.id, stages[i][1], stages[i][2], stages[i][3]::int, stages[i][4]::boolean, stages[i][5]::boolean, stages[i][6]::boolean, org_rec.created_by)
-      on conflict (organization_id, name) do nothing;
-    end loop;
-  end loop;
-end $$;
+insert into public.lead_stages (organization_id, name, color, sort_order, is_default, is_won, is_lost, created_by)
+select o.id, s.name, s.color, s.sort_order::int, s.is_default::boolean, s.is_won::boolean, s.is_lost::boolean, o.created_by
+from public.organizations o
+cross join (
+  values
+    ('New', '#64748b', '0', 'true', 'false', 'false'),
+    ('Contacted', '#0ea5e9', '1', 'false', 'false', 'false'),
+    ('Qualified', '#22c55e', '2', 'false', 'false', 'false'),
+    ('Proposal Sent', '#f59e0b', '3', 'false', 'false', 'false'),
+    ('Negotiation', '#8b5cf6', '4', 'false', 'false', 'false'),
+    ('Won', '#16a34a', '5', 'false', 'true', 'false'),
+    ('Lost', '#dc2626', '6', 'false', 'false', 'true')
+) as s(name, color, sort_order, is_default, is_won, is_lost)
+on conflict (organization_id, name) do nothing;
