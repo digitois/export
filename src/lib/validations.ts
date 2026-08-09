@@ -285,7 +285,7 @@ export const emailContactSchema = z.object({
 });
 
 export const websiteSettingsSchema = z.object({
-  theme: z.enum(['modern', 'classic', 'minimal', 'bold', 'editorial', 'coastal', 'sunset', 'forest']).default('modern'),
+  theme: z.enum(['modern', 'classic', 'minimal', 'bold', 'editorial', 'coastal', 'sunset', 'forest', 'steel']).default('modern'),
   primaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Use a hex color').default('#0f172a'),
   accentColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Use a hex color').default('#0284c7'),
   heroHeading: z.string().optional().nullable(),
@@ -303,6 +303,8 @@ export const websiteSettingsSchema = z.object({
   whatsappNumber: z.string().optional().nullable(),
   analyticsId: z.string().optional().nullable(),
   customFooter: z.string().optional().nullable(),
+  industry: z.string().optional().nullable(),
+  templateId: z.string().optional().nullable(),
   blocks: z
     .array(
       z.object({

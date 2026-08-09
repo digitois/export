@@ -22,6 +22,7 @@ import { toast } from 'sonner';
 import { api } from '@/lib/api-client';
 import { BLOCK_META, createBlock, isSiteBlockType, type SiteBlock, type SiteBlockType } from '@/lib/site/blocks';
 import { getSiteTheme, SITE_THEME_LIST, type ThemeId } from '@/lib/site/themes';
+import { instantiateTemplate, industryLabel, type SiteTemplate } from '@/lib/site/templates';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -32,6 +33,7 @@ import { cn } from '@/lib/utils';
 import { BlockPreview } from '@/components/website-builder/block-preview';
 import { Inspector, cloneValue } from '@/components/website-builder/inspector';
 import { Palette } from '@/components/website-builder/palette';
+import { TemplateGallery } from '@/components/website-builder/template-gallery';
 
 interface Settings {
   theme?: ThemeId;
@@ -52,6 +54,8 @@ interface Settings {
   whatsappNumber?: string | null;
   customFooter?: string | null;
   isPublished?: boolean;
+  industry?: string | null;
+  templateId?: string | null;
   blocks?: SiteBlock[];
 }
 
@@ -68,6 +72,8 @@ export default function WebsiteBuilderPage() {
   const [previewMode, setPreviewMode] = useState(false);
   const [websiteSubdomain, setWebsiteSubdomain] = useState('');
   const [dropIndex, setDropIndex] = useState<number | null>(null);
+  const [showGallery, setShowGallery] = useState(false);
+  const [applyingTemplate, setApplyingTemplate] = useState<string | null>(null);
 
   const dragDepth = useRef(0);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -83,7 +89,10 @@ export default function WebsiteBuilderPage() {
         const data = res.data;
         setSettings(data);
         setWebsiteSubdomain(String((data as unknown as { websiteSubdomain?: string }).websiteSubdomain ?? ''));
-        setBlocks(Array.isArray(data.blocks) ? (data.blocks as SiteBlock[]) : []);
+        const loaded = Array.isArray(data.blocks) ? (data.blocks as SiteBlock[]) : [];
+        setBlocks(loaded);
+        // First-time users (no blocks, no template chosen) start at the gallery.
+        if (loaded.length === 0 && !data.templateId) setShowGallery(true);
       })
       .catch((err) => toast.error(err instanceof Error ? err.message : 'Failed to load website settings'))
       .finally(() => setLoading(false));
@@ -193,6 +202,56 @@ export default function WebsiteBuilderPage() {
     markChanged();
   }
 
+  async function applyTemplate(template: SiteTemplate) {
+    const seed = instantiateTemplate(template);
+    setApplyingTemplate(template.id);
+    const nextSettings: Settings | null = settings
+      ? { ...settings, theme: seed.theme, primaryColor: seed.primaryColor, accentColor: seed.accentColor, industry: seed.industry, templateId: seed.templateId }
+      : settings;
+    const payload = {
+      theme: seed.theme,
+      primaryColor: seed.primaryColor,
+      accentColor: seed.accentColor,
+      heroHeading: settings?.heroHeading ?? null,
+      heroSubheading: settings?.heroSubheading ?? null,
+      heroEyebrow: settings?.heroEyebrow ?? null,
+      heroImageUrl: settings?.heroImageUrl ?? '',
+      announcementBar: settings?.announcementBar ?? null,
+      ctaLabel: settings?.ctaLabel ?? null,
+      enableProductSection: settings?.enableProductSection ?? true,
+      enableAboutSection: settings?.enableAboutSection ?? true,
+      enableBlogSection: settings?.enableBlogSection ?? true,
+      showInquiryForm: settings?.showInquiryForm ?? true,
+      contactEmail: settings?.contactEmail ?? null,
+      contactPhone: settings?.contactPhone ?? null,
+      whatsappNumber: settings?.whatsappNumber ?? null,
+      customFooter: settings?.customFooter ?? null,
+      industry: seed.industry,
+      templateId: seed.templateId,
+      blocks: seed.blocks
+    };
+    try {
+      await api('/api/website/settings', { method: 'PUT', body: payload });
+      setSettings(nextSettings);
+      setBlocks(seed.blocks);
+      setSelectedId(null);
+      setShowGallery(false);
+      setSaveState('saved');
+      setDirty(false);
+      toast.success(`Applied “${template.name}” — now customize it`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to apply template');
+    } finally {
+      setApplyingTemplate(null);
+    }
+  }
+
+  function startBlank() {
+    setShowGallery(false);
+    setSettings((prev) => (prev ? { ...prev, templateId: prev.templateId ?? 'blank' } : prev));
+    markChanged();
+  }
+
   async function persist(): Promise<{ ok: boolean; error?: string }> {
     const current = latestRef.current;
     if (!current.settings) return { ok: false, error: 'Settings not loaded yet' };
@@ -215,6 +274,8 @@ export default function WebsiteBuilderPage() {
       contactPhone: current.settings.contactPhone ?? null,
       whatsappNumber: current.settings.whatsappNumber ?? null,
       customFooter: current.settings.customFooter ?? null,
+      industry: current.settings.industry ?? null,
+      templateId: current.settings.templateId ?? null,
       blocks: current.blocks
     };
     try {
@@ -311,6 +372,25 @@ export default function WebsiteBuilderPage() {
     );
   }
 
+  if (showGallery) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h1 className="text-lg font-semibold tracking-tight">Website Builder</h1>
+            <p className="text-sm text-muted-foreground">Start from an industry-ready design, then customize every part.</p>
+          </div>
+          {blocks.length > 0 && (
+            <Button variant="ghost" onClick={() => setShowGallery(false)}>
+              Back to editor
+            </Button>
+          )}
+        </div>
+        <TemplateGallery onUse={applyTemplate} onStartBlank={startBlank} busyTemplateId={applyingTemplate} />
+      </div>
+    );
+  }
+
   const guide = (i: number) =>
     dropIndex === i ? <div className="h-1 rounded-full bg-blue-600 shadow-sm" /> : null;
 
@@ -326,6 +406,11 @@ export default function WebsiteBuilderPage() {
             <span className="inline-flex items-center gap-1.5 rounded-full border bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
               <Sparkles className="h-3 w-3" />
               {theme.name} theme
+            </span>
+          )}
+          {settings?.industry && (
+            <span className="inline-flex items-center gap-1.5 rounded-full border bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary">
+              {industryLabel(settings.industry)}
             </span>
           )}
         </div>
@@ -351,6 +436,9 @@ export default function WebsiteBuilderPage() {
               </Link>
             </Button>
           )}
+          <Button variant="outline" onClick={() => setShowGallery(true)}>
+            <LayoutTemplate className="h-4 w-4" /> Templates
+          </Button>
           <Button variant="outline" onClick={() => setPreviewMode((p) => !p)}>
             <Eye className="h-4 w-4" /> {previewMode ? 'Exit preview' : 'Preview'}
           </Button>
@@ -397,11 +485,16 @@ export default function WebsiteBuilderPage() {
                   <LayoutTemplate className="mx-auto h-8 w-8 text-muted-foreground" />
                   <p className="mt-3 text-sm font-semibold">Your page is empty</p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Drag sections from the left palette, or add your first section to get started.
+                    Drag sections from the left palette, or start from a ready-made industry template.
                   </p>
-                  <Button className="mt-4" onClick={() => insertBlock('hero')}>
-                    <Plus className="h-4 w-4" /> Add your first section
-                  </Button>
+                  <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                    <Button onClick={() => setShowGallery(true)}>
+                      <LayoutTemplate className="h-4 w-4" /> Browse templates
+                    </Button>
+                    <Button variant="outline" onClick={() => insertBlock('hero')}>
+                      <Plus className="h-4 w-4" /> Add a section
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <>
@@ -541,17 +634,31 @@ function SiteSettingsCard({ settings, onChange }: { settings: Settings | null; o
       <CardContent className="space-y-5">
         <div className="space-y-2">
           <Label>Theme</Label>
-          <select
-            value={settings?.theme ?? 'modern'}
-            onChange={(e) => onChange('theme', e.target.value as ThemeId)}
-            className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          >
-            {SITE_THEME_LIST.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
-            ))}
-          </select>
+          <div className="grid grid-cols-2 gap-2">
+            {SITE_THEME_LIST.map((t) => {
+              const active = (settings?.theme ?? 'modern') === t.id;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => onChange('theme', t.id)}
+                  title={t.description}
+                  className={cn(
+                    'flex items-center gap-2 rounded-lg border p-2 text-left transition-colors',
+                    active ? 'border-primary ring-1 ring-primary' : 'hover:border-primary/40'
+                  )}
+                >
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md" style={{ backgroundColor: t.hero.bg }}>
+                    <span className="h-3 w-3 rounded-full" style={{ backgroundColor: t.hero.accent }} />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-xs font-medium">{t.name}</span>
+                  </span>
+                  {active && <Check className="ml-auto h-3.5 w-3.5 shrink-0 text-primary" />}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3">

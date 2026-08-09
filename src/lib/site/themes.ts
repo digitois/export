@@ -1,4 +1,4 @@
-export type ThemeId = 'modern' | 'classic' | 'minimal' | 'bold' | 'editorial' | 'coastal' | 'sunset' | 'forest';
+export type ThemeId = 'modern' | 'classic' | 'minimal' | 'bold' | 'editorial' | 'coastal' | 'sunset' | 'forest' | 'steel';
 
 export interface SiteTheme {
   id: ThemeId;
@@ -91,6 +91,16 @@ export const SITE_THEMES: Record<ThemeId, SiteTheme> = {
     radius: '1.25rem',
     heroLayout: 'split',
     hero: { bg: '#14532d', text: '#f0fdf4', accent: '#bef264' }
+  },
+  steel: {
+    id: 'steel',
+    name: 'Steel',
+    description: 'Industrial graphite and safety-amber for machinery, metals and engineering.',
+    headingFont: '"Inter Tight", Inter, system-ui, sans-serif',
+    bodyFont: 'Inter, system-ui, sans-serif',
+    radius: '0.375rem',
+    heroLayout: 'left',
+    hero: { bg: '#1f2937', text: '#f9fafb', accent: '#f59e0b' }
   }
 };
 
