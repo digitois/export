@@ -49,7 +49,7 @@ export function PricingCard({ plan, highlighted = false }: PricingCardProps) {
           features.map((feature) => (
             <li key={feature} className="flex items-start gap-3 text-sm">
               <Check
-                className={cn('mt-0.5 h-4 w-4 shrink-0', highlighted ? 'text-emerald-400' : 'text-emerald-600')}
+                className={cn('mt-0.5 h-4 w-4 shrink-0', highlighted ? 'text-primary' : 'text-primary')}
               />
               <span className={highlighted ? 'text-slate-200' : 'text-slate-600'}>{feature}</span>
             </li>

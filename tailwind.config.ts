@@ -43,12 +43,22 @@ const config: Config = {
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))'
-        }
+        },
+        canvas: 'hsl(var(--background))',
+        line: 'hsl(var(--border))',
+        'accent-weak': 'hsl(var(--accent))',
+        pos: 'hsl(var(--pos))',
+        warn: 'hsl(var(--warn))',
+        neg: 'hsl(var(--neg))',
+        info: 'hsl(var(--info))'
       },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)'
+      },
+      boxShadow: {
+        card: '0 1px 2px rgba(16,24,40,.04), 0 1px 3px rgba(16,24,40,.06)'
       }
     }
   },

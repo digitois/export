@@ -4,48 +4,60 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
-    --card: 0 0% 100%;
+    /* App shell */
+    --background: 220 23% 97%; /* canvas #F7F8FA */
+    --foreground: 222 47% 11%; /* ink #0F172A */
+    --card: 0 0% 100%; /* surface #FFFFFF */
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    --primary: 222 47% 11%;
+    /* Brand + action (customs-green, tenant-overridable) */
+    --primary: 166 57% 28%; /* accent #1E6F5C */
     --primary-foreground: 0 0% 98%;
-    --secondary: 210 40% 96%;
+    --accent: 156 28% 93%; /* accent-weak #E8F2EE */
+    --accent-foreground: 166 57% 22%;
+    /* Neutrals */
+    --secondary: 220 18% 96%;
     --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222 47% 11%;
-    --destructive: 0 72% 51%;
+    --muted: 220 18% 96%;
+    --muted-foreground: 215 16% 47%; /* muted #64748B */
+    --destructive: 4 76% 40%; /* neg #B42318 */
     --destructive-foreground: 0 0% 98%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 222 47% 11%;
-    --radius: 0.5rem;
+    --border: 220 23% 92%; /* line #E7EAF0 */
+    --input: 220 23% 92%;
+    --ring: 166 57% 28%;
+    --radius: 0.75rem;
+    /* Semantic (paired with icon/label) */
+    --pos: 160 72% 29%; /* #157F5B */
+    --warn: 26 90% 37%; /* #B45309 */
+    --neg: 4 76% 40%; /* #B42318 */
+    --info: 224 76% 48%; /* #1D4ED8 */
   }
 
   .dark {
     --background: 222 47% 7%;
     --foreground: 210 40% 98%;
-    --card: 222 47% 9%;
+    --card: 222 44% 10%;
     --card-foreground: 210 40% 98%;
-    --popover: 222 47% 9%;
+    --popover: 222 44% 10%;
     --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222 47% 11%;
-    --secondary: 217 33% 15%;
+    --primary: 166 55% 42%;
+    --primary-foreground: 166 60% 10%;
+    --accent: 166 30% 18%;
+    --accent-foreground: 166 40% 80%;
+    --secondary: 217 33% 16%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 15%;
+    --muted: 217 33% 16%;
     --muted-foreground: 215 20% 65%;
-    --accent: 217 33% 15%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 63% 31%;
+    --destructive: 4 65% 48%;
     --destructive-foreground: 0 0% 98%;
     --border: 217 33% 18%;
     --input: 217 33% 18%;
-    --ring: 210 40% 98%;
+    --ring: 166 55% 42%;
+    --pos: 160 60% 50%;
+    --warn: 26 90% 60%;
+    --neg: 4 70% 58%;
+    --info: 224 72% 62%;
   }
 }
 
@@ -56,6 +68,9 @@
   body {
     @apply bg-background text-foreground antialiased;
   }
+  .font-display {
+    font-family: var(--font-display), var(--font-inter), system-ui, sans-serif;
+  }
 }
 
 @layer utilities {
@@ -65,5 +80,23 @@
   }
   .scrollbar-thin::-webkit-scrollbar-thumb {
     @apply bg-muted-foreground/30 rounded-full;
+  }
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .animate-fade-up {
+    animation: fade-up 0.6s ease-out both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fade-up {
+      animation: none;
+    }
   }
 }

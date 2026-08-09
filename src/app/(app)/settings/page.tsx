@@ -254,7 +254,7 @@ export default function SettingsPage() {
               </Section>
 
               {status && (
-                <p className={status.type === 'error' ? 'text-sm text-destructive' : 'text-sm text-green-600'}>
+                <p className={status.type === 'error' ? 'text-sm text-destructive' : 'text-sm text-pos'}>
                   {status.message}
                 </p>
               )}

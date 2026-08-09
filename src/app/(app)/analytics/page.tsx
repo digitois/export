@@ -291,7 +291,9 @@ function BarChart({ data, valueFormat }: { data: Array<{ label: string; value: n
         <div key={d.label} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1">
           <span className="max-w-full truncate text-[10px] tabular-nums text-muted-foreground">{valueFormat(d.value)}</span>
           <div className="flex h-24 w-full items-end justify-center">
-            <div className="w-full max-w-7 rounded-t bg-primary" style={{ height: `${(d.value / max) * 100}%` }} title={d.label} />
+            <div className="w-full max-w-7 overflow-hidden rounded-md bg-accent-weak" style={{ height: `${(d.value / max) * 100}%` }}>
+              <div className="h-full w-full rounded-sm bg-primary" />
+            </div>
           </div>
           <span className="max-w-full truncate text-[10px] text-muted-foreground">{d.label}</span>
         </div>

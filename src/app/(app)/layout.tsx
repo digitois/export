@@ -18,9 +18,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         />
       </aside>
       <div className="flex min-h-screen w-full flex-col md:pl-64">
-        <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b bg-background/95 px-4 backdrop-blur md:px-6">
+        <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-line bg-background/85 px-4 backdrop-blur md:px-6">
           <div className="md:hidden">
-            <span className="text-sm font-semibold">{org.context.organizationName}</span>
+            <span className="font-display text-sm font-semibold">{org.context.organizationName}</span>
           </div>
           <div className="ml-auto">
             <UserNav

@@ -134,7 +134,7 @@ export default async function PricingPage() {
                           return (
                             <td key={plan.id} className="px-6 py-3.5">
                               {included ? (
-                                <Check className="h-4 w-4 text-emerald-600" />
+                                <Check className="h-4 w-4 text-primary" />
                               ) : (
                                 <Minus className="h-4 w-4 text-slate-300" />
                               )}

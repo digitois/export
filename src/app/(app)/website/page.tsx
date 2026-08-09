@@ -392,7 +392,7 @@ export default function WebsiteBuilderPage() {
   }
 
   const guide = (i: number) =>
-    dropIndex === i ? <div className="h-1 rounded-full bg-blue-600 shadow-sm" /> : null;
+    dropIndex === i ? <div className="h-1 rounded-full bg-info shadow-sm" /> : null;
 
   return (
     <div className="space-y-4" style={vars}>
@@ -416,11 +416,11 @@ export default function WebsiteBuilderPage() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {!settings?.isPublished && dirty ? (
-            <span className="inline-flex items-center gap-1.5 text-xs text-amber-600">
+            <span className="inline-flex items-center gap-1.5 text-xs text-warn">
               <Loader2 className="h-3 w-3 animate-spin" /> Unsaved changes
             </span>
           ) : !dirty && saveState === 'saved' ? (
-            <span className="inline-flex items-center gap-1.5 text-xs text-emerald-600">
+            <span className="inline-flex items-center gap-1.5 text-xs text-pos">
               <CheckCircle2 className="h-3 w-3" /> Saved
             </span>
           ) : (
