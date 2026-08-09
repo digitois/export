@@ -130,18 +130,26 @@ create policy contracts_delete_org on public.contracts
   for delete using (public.has_role(organization_id, 'manager'));
 
 -- Seed default pipeline stages for existing orgs (idempotent)
-insert into public.lead_stages (organization_id, name, color, sort_order, is_default, is_won, is_lost, created_by)
-select o.id, s.name, s.color, s.sort_order, s.is_default, s.is_won, s.is_lost, o.created_by
-from public.organizations o
-cross join lateral (values
-  ('New', '#64748b', 0, true, false, false),
-  ('Contacted', '#0ea5e9', 1, false, false, false),
-  ('Qualified', '#22c55e', 2, false, false, false),
-  ('Proposal Sent', '#f59e0b', 3, false, false, false),
-  ('Negotiation', '#8b5cf6', 4, false, false, false),
-  ('Won', '#16a34a', 5, false, true, false),
-  ('Lost', '#dc2626', 6, false, false, true)
-) as s(name, color, sort_order, is_default, is_won, is_lost)
-where not exists (
-  select 1 from public.lead_stages ls where ls.organization_id = o.id and ls.name = s.name
-);
+do $$
+declare
+  org_rec record;
+  stage_rec record;
+  stages constant text[][] := array[
+    array['New', '#64748b', '0', 'true', 'false', 'false'],
+    array['Contacted', '#0ea5e9', '1', 'false', 'false', 'false'],
+    array['Qualified', '#22c55e', '2', 'false', 'false', 'false'],
+    array['Proposal Sent', '#f59e0b', '3', 'false', 'false', 'false'],
+    array['Negotiation', '#8b5cf6', '4', 'false', 'false', 'false'],
+    array['Won', '#16a34a', '5', 'false', 'true', 'false'],
+    array['Lost', '#dc2626', '6', 'false', 'false', 'true']
+  ];
+begin
+  for org_rec in select id, created_by from public.organizations loop
+    for i in 1..array_length(stages, 1) loop
+      stage_rec := stages[i];
+      insert into public.lead_stages (organization_id, name, color, sort_order, is_default, is_won, is_lost, created_by)
+      values (org_rec.id, stage_rec[1], stage_rec[2], stage_rec[3]::int, stage_rec[4]::boolean, stage_rec[5]::boolean, stage_rec[6]::boolean, org_rec.created_by)
+      on conflict (organization_id, name) do nothing;
+    end loop;
+  end loop;
+end $$;
