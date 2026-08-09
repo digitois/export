@@ -591,3 +591,50 @@ export const publicInquirySchema = z.object({
   message: z.string().max(5000).optional().nullable(),
   source: z.literal('website')
 });
+
+export const employeeSchema = z.object({
+  fullName: z.string().min(1, 'Full name is required').max(200),
+  email: z.string().email().optional().or(z.literal('')).nullable(),
+  phone: z.string().optional().nullable(),
+  designation: z.string().optional().nullable(),
+  department: z.string().optional().nullable(),
+  joiningDate: z.string().optional().nullable(),
+  status: z.enum(['active', 'on_leave', 'terminated']).default('active'),
+  baseSalary: z.coerce.number().min(0).default(0),
+  currency: z.string().length(3).default('USD'),
+  bankName: z.string().optional().nullable(),
+  bankAccount: z.string().optional().nullable(),
+  bankIfsc: z.string().optional().nullable(),
+  address: z.string().optional().nullable(),
+  notes: z.string().optional().nullable()
+});
+
+export const attendanceSchema = z.object({
+  employeeId: z.string().uuid(),
+  attendanceDate: z.string(),
+  checkIn: z.string().datetime().optional().nullable(),
+  checkOut: z.string().datetime().optional().nullable(),
+  status: z.enum(['present', 'absent', 'half_day', 'leave']).default('present'),
+  hoursWorked: z.coerce.number().min(0).default(0),
+  notes: z.string().optional().nullable()
+});
+
+export const leaveRequestSchema = z.object({
+  employeeId: z.string().uuid(),
+  leaveType: z.string().min(1, 'Leave type is required'),
+  startDate: z.string(),
+  endDate: z.string(),
+  reason: z.string().optional().nullable()
+});
+
+export const leaveReviewSchema = z.object({
+  status: z.enum(['approved', 'rejected']),
+  reviewNote: z.string().optional().nullable()
+});
+
+export const payrollRunSchema = z.object({
+  periodStart: z.string(),
+  periodEnd: z.string(),
+  runDate: z.string().optional().nullable(),
+  notes: z.string().optional().nullable()
+});
