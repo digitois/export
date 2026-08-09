@@ -93,13 +93,13 @@ export default function DocumentsPage() {
       api<{ data: Document[]; meta: { count: number } }>(
         `/api/documents${getSearchParamString({ page, pageSize, q: appliedQ, type: effectiveType, folderId: effectiveFolder })}`
       ),
-      api<Folder[]>('/api/documents/folders')
+      api<{ data: Folder[] }>('/api/documents/folders')
     ])
-      .then(([docs, folderList]) => {
+      .then(([docs, folderRes]) => {
         if (cancelled) return;
         setItems(docs.data);
         setCount(docs.meta.count);
-        setFolders(folderList);
+        setFolders(folderRes.data);
       })
       .catch((err) => toast.error(err instanceof Error ? err.message : 'Failed to load documents'))
       .finally(() => {

@@ -83,10 +83,10 @@ export default function TeamPage() {
     try {
       const [m, i] = await Promise.all([
         api<{ data: Member[] }>('/api/team/members'),
-        api<Invitation[]>('/api/team/invitations')
+        api<{ data: Invitation[] }>('/api/team/invitations')
       ]);
       setMembers(m.data);
-      setInvitations(i);
+      setInvitations(i.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load team');
     } finally {

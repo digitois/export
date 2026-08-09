@@ -86,9 +86,9 @@ export default function QuotationDetailPage({ params }: { params: Promise<{ id: 
     if (!quote) return;
     setSending(true);
     try {
-      const res = await api<{ sent: boolean; error?: string | null }>(`/api/quotations/${quote.id}/send`, { method: 'POST' });
-      if (!res.sent) {
-        toast.warning(res.error ? `Email not sent: ${res.error}` : 'Email not sent (SES not configured)');
+      const res = await api<{ data: { sent: boolean; error?: string | null } }>(`/api/quotations/${quote.id}/send`, { method: 'POST' });
+      if (!res.data.sent) {
+        toast.warning(res.data.error ? `Email not sent: ${res.data.error}` : 'Email not sent (SES not configured)');
       } else {
         toast.success(`Quotation emailed to ${quote.buyer_email ?? 'buyer'}`);
       }
