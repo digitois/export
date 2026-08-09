@@ -1,4 +1,5 @@
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 const STATUS_STYLES: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning' | 'info'; label: string }> = {
   // Product / content
@@ -34,10 +35,32 @@ const STATUS_STYLES: Record<string, { variant: 'default' | 'secondary' | 'destru
   open: { variant: 'info', label: 'Open' },
   pending: { variant: 'warning', label: 'Pending' },
   resolved: { variant: 'success', label: 'Resolved' },
-  closed: { variant: 'outline', label: 'Closed' }
+  closed: { variant: 'outline', label: 'Closed' },
+  // Shipment journey
+  booked: { variant: 'info', label: 'Booked' },
+  in_transit: { variant: 'info', label: 'In Transit' },
+  at_customs: { variant: 'warning', label: 'At Customs' },
+  cleared: { variant: 'success', label: 'Cleared' },
+  delivered: { variant: 'success', label: 'Delivered' },
+  held: { variant: 'destructive', label: 'Held' }
+};
+
+const DOT: Record<string, string> = {
+  default: 'bg-primary',
+  secondary: 'bg-muted-foreground',
+  destructive: 'bg-neg',
+  outline: 'bg-muted-foreground/60',
+  success: 'bg-pos',
+  warning: 'bg-warn',
+  info: 'bg-info'
 };
 
 export function StatusBadge({ status }: { status: string }) {
   const style = STATUS_STYLES[status] ?? { variant: 'secondary' as const, label: status.replace(/_/g, ' ') };
-  return <Badge variant={style.variant}>{style.label}</Badge>;
+  return (
+    <Badge variant={style.variant} className="pl-2">
+      <span className={cn('h-1.5 w-1.5 rounded-full', DOT[style.variant])} aria-hidden />
+      {style.label}
+    </Badge>
+  );
 }
