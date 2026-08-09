@@ -64,6 +64,24 @@ export const INVOICE_STATUSES = [
   { value: 'void', label: 'Void' }
 ] as const;
 
+export const SHIPMENT_MODES = [
+  { value: 'sea', label: 'Sea' },
+  { value: 'air', label: 'Air' },
+  { value: 'road', label: 'Road' },
+  { value: 'rail', label: 'Rail' },
+  { value: 'courier', label: 'Courier' }
+] as const;
+
+export const SHIPMENT_STATUSES = [
+  { value: 'booked', label: 'Booked' },
+  { value: 'in_transit', label: 'In Transit' },
+  { value: 'at_customs', label: 'At Customs' },
+  { value: 'cleared', label: 'Cleared' },
+  { value: 'delivered', label: 'Delivered' },
+  { value: 'held', label: 'Held' },
+  { value: 'cancelled', label: 'Cancelled' }
+] as const;
+
 export const DOCUMENT_TYPES = [
   { value: 'iec', label: 'IEC' },
   { value: 'gst', label: 'GST' },
