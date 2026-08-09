@@ -11,6 +11,10 @@ import {
   Package,
   Handshake,
   PackageCheck,
+  Recycle,
+  Cog,
+  Palette,
+  FlaskConical,
   type LucideIcon
 } from 'lucide-react';
 import type { SiteBlock, SiteBlockType } from '@/lib/site/blocks';
@@ -26,7 +30,11 @@ const FEATURE_ICONS: Record<string, LucideIcon> = {
   Factory,
   Package,
   Handshake,
-  PackageCheck
+  PackageCheck,
+  Recycle,
+  Cog,
+  Palette,
+  FlaskConical
 };
 
 interface SiteBlocksProps {
