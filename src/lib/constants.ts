@@ -82,6 +82,14 @@ export const SHIPMENT_STATUSES = [
   { value: 'cancelled', label: 'Cancelled' }
 ] as const;
 
+export const COO_TYPES = [
+  { value: 'non_preferential', label: 'Non-Preferential CoO' },
+  { value: 'preferential', label: 'Preferential CoO' },
+  { value: 'gst', label: 'GST CoO' },
+  { value: 'wpc', label: 'WPC (Woolmark)' },
+  { value: 'other', label: 'Other' }
+] as const;
+
 export const DOCUMENT_TYPES = [
   { value: 'iec', label: 'IEC' },
   { value: 'gst', label: 'GST' },

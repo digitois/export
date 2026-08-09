@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Users, ReceiptText, FileText, Package, Contact,
   Folder, Newspaper, Sparkles, Send, BarChart3, Globe, Building2,
-  UserCog, Settings, SearchCode, Ship, type LucideIcon
+  UserCog, Settings, SearchCode, Ship, Calculator, PackageCheck, Award, type LucideIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Logo } from '@/components/logo';
@@ -16,6 +16,9 @@ const NAV: Array<{ href: string; label: string; icon: LucideIcon }> = [
   { href: '/quotations', label: 'Quotations', icon: ReceiptText },
   { href: '/invoices', label: 'Invoices', icon: FileText },
   { href: '/shipments', label: 'Shipments', icon: Ship },
+  { href: '/landed-cost', label: 'Landed Cost', icon: Calculator },
+  { href: '/packing-lists', label: 'Packing Lists', icon: PackageCheck },
+  { href: '/certificates-of-origin', label: 'CoO', icon: Award },
   { href: '/products', label: 'Products', icon: Package },
   { href: '/buyers', label: 'Buyers', icon: Contact },
   { href: '/documents', label: 'Documents', icon: Folder },
