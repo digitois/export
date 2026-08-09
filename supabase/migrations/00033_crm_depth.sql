@@ -30,10 +30,13 @@ alter table public.leads add column if not exists stage_id uuid references publi
 create index if not exists idx_leads_stage on public.leads (stage_id);
 
 -- Follow-ups are already in lead_follow_ups (migration 00006).
--- Add a simple done flag and reminder notification tracking.
-alter table public.lead_follow_ups add column if not exists done boolean not null default false;
+-- Columns added in migration 00006: id, org_id, lead_id, scheduled_at, reminder_type, note, completed_at, created_by, created_at
+-- New columns added by this migration (if not exist):
+-- done boolean default false, reminder_sent_at timestamptz, notification_channels text[] default '{}'
+-- Using IF NOT EXISTS to be idempotent
+alter table public.lead_follow_ups add column if not exists done boolean default false;
 alter table public.lead_follow_ups add column if not exists reminder_sent_at timestamptz;
-alter table public.lead_follow_ups add column if not exists notification_channels text[] not null default '{}'; -- e.g., '{email,in_app}'
+alter table public.lead_follow_ups add column if not exists notification_channels text[] default '{}';
 
 -- Reminders: scheduled notifications for follow-ups (surfacing on dashboard)
 create table if not exists public.reminders (
