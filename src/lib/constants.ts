@@ -122,6 +122,13 @@ export const PURCHASE_ORDER_STATUSES = [
   { value: 'cancelled', label: 'Cancelled' }
 ] as const;
 
+export const CONTRACT_STATUSES = [
+  { value: 'draft', label: 'Draft' },
+  { value: 'sent', label: 'Sent' },
+  { value: 'signed', label: 'Signed' },
+  { value: 'expired', label: 'Expired' }
+] as const;
+
 export const DOCUMENT_TYPES = [
   { value: 'iec', label: 'IEC' },
   { value: 'gst', label: 'GST' },

@@ -501,6 +501,44 @@ export const purchaseOrderSchema = z.object({
   items: z.array(purchaseOrderItemSchema).min(1, 'Add at least one item')
 });
 
+export const leadStageSchema = z.object({
+  name: z.string().min(1, 'Stage name is required').max(100),
+  description: z.string().optional().nullable(),
+  color: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Use a hex color').default('#3b82f6'),
+  sortOrder: z.coerce.number().int().min(0).default(0),
+  isDefault: z.boolean().default(false),
+  isWon: z.boolean().default(false),
+  isLost: z.boolean().default(false)
+});
+
+export const followUpSchema = z.object({
+  leadId: z.string().uuid(),
+  scheduledAt: z.string().datetime(),
+  reminderType: z.enum(['email', 'in_app', 'sms', 'call']).default('in_app'),
+  note: z.string().optional().nullable(),
+  notificationChannels: z.array(z.enum(['email', 'in_app', 'sms'])).default(['in_app'])
+});
+
+export const reminderSchema = z.object({
+  followUpId: z.string().uuid().optional().nullable(),
+  leadId: z.string().uuid().optional().nullable(),
+  title: z.string().min(1, 'Title is required').max(200),
+  description: z.string().optional().nullable(),
+  remindAt: z.string().datetime()
+});
+
+export const contractSchema = z.object({
+  leadId: z.string().uuid().optional().nullable(),
+  title: z.string().min(1, 'Title is required').max(200),
+  documentUrl: z.string().url().optional().or(z.literal('')).nullable(),
+  status: z.enum(['draft', 'sent', 'signed', 'expired']).default('draft'),
+  signedAt: z.string().datetime().optional().nullable(),
+  expiresAt: z.string().datetime().optional().nullable(),
+  value: z.coerce.number().min(0).optional().nullable(),
+  currency: z.string().length(3).default('USD'),
+  notes: z.string().optional().nullable()
+});
+
 export const supportTicketSchema = z.object({
   subject: z.string().min(1).max(200),
   description: z.string().min(1).max(10000),
