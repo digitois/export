@@ -8,7 +8,7 @@ export async function GET() {
   try {
     const ctx = await requireAuth();
     const { data } = await ctx.supabase
-      .from('invitations')
+      .from('organization_invitations')
       .select('*')
       .eq('organization_id', ctx.organizationId)
       .order('created_at', { ascending: false });
