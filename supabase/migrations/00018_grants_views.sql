@@ -9,6 +9,10 @@ create extension if not exists "pg_trgm";
 -- Created as owner (security definer semantics) so published sites
 -- can be read by anonymous visitors without exposing private data.
 -- ------------------------------------------------------------------
+-- Drop first so this migration is idempotent: later migrations
+-- (00024/00027) redefine the view with additional columns, and
+-- CREATE OR REPLACE VIEW cannot drop or reorder existing columns.
+drop view if exists public.public_sites;
 create or replace view public.public_sites as
 select
   o.id as organization_id,
