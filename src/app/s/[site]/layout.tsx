@@ -34,7 +34,7 @@ export default async function SiteLayout({ children, params }: SiteLayoutProps) 
 
   const base = `/s/${identifier}`;
   const primary = siteData.primary_color ?? '#0f172a';
-  const accent = siteData.accent_color ?? '#0284c7';
+  const accent = siteData.accent_color ?? '#1E6F5C';
   const theme = getSiteTheme(siteData.theme);
 
   return (
