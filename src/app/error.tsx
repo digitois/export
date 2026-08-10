@@ -37,6 +37,12 @@ export default function RootError({
         </Button>
       </div>
       {error.digest && <p className="text-xs text-muted-foreground">Reference: {error.digest}</p>}
+      {error.message && (
+        <pre className="max-w-full overflow-auto whitespace-pre-wrap rounded-lg border border-line bg-canvas p-4 text-left text-xs text-muted-foreground">
+          {error.message}
+          {error.stack ? `\n\n${error.stack}` : ''}
+        </pre>
+      )}
     </div>
   );
 }
