@@ -284,6 +284,33 @@ export async function getAdminOverview(supabase: SupabaseClient) {
     }
   })();
 
+  const revenueTrend = await (async () => {
+    try {
+      const { data } = await supabase
+        .from('payments')
+        .select('amount, created_at')
+        .eq('status', 'captured');
+      const buckets = new Map<string, number>();
+      for (const p of (data ?? []) as Array<{ amount: number | string; created_at: string }>) {
+        const key = (p.created_at ?? '').slice(0, 7);
+        if (!key) continue;
+        buckets.set(key, (buckets.get(key) ?? 0) + Number(p.amount ?? 0));
+      }
+      const labels: string[] = [];
+      const values: number[] = [];
+      const now = new Date();
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getUTCFullYear(), now.getUTCMonth() - i, 1);
+        const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+        labels.push(d.toLocaleString('en-US', { month: 'short' }));
+        values.push(Math.round((buckets.get(key) ?? 0) * 100) / 100);
+      }
+      return { labels, values };
+    } catch {
+      return { labels: [], values: [] };
+    }
+  })();
+
   const [organizations, users, payments, activeSubscriptions, openTickets, newSignupsThisMonth] =
     await Promise.all([
       safeCount(supabase, 'organizations'),
@@ -302,6 +329,7 @@ export async function getAdminOverview(supabase: SupabaseClient) {
     payments,
     openTickets,
     newSignupsThisMonth,
+    revenueTrend,
     recentOrganizations,
     recentTickets
   };

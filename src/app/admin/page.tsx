@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
-  Building2, Users, DollarSign, LifeBuoy, ArrowRight, TrendingUp
+  Building2, Users, DollarSign, ArrowRight, TrendingUp, ReceiptText
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/lib/api-client';
@@ -13,7 +13,7 @@ import { EmptyState } from '@/components/empty-state';
 import { StatCard } from '@/components/stat-card';
 import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from '@/components/ui/table';
@@ -27,6 +27,7 @@ interface OverviewData {
   payments: number;
   openTickets: number;
   newSignupsThisMonth: number;
+  revenueTrend: { labels: string[]; values: number[] };
   recentOrganizations: Array<{
     id: string;
     name: string;
@@ -102,11 +103,83 @@ export default function AdminOverviewPage() {
           description={`${formatNumber(data.activeSubscriptions)} active subscriptions`}
         />
         <StatCard
-          title="Open Tickets"
-          value={formatNumber(data.openTickets)}
-          icon={LifeBuoy}
-          description={`${formatNumber(data.payments)} total payments`}
+          title="Payments"
+          value={formatNumber(data.payments)}
+          icon={ReceiptText}
+          description={`${formatNumber(data.openTickets)} open tickets`}
         />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              Revenue Collected
+            </CardTitle>
+            <CardDescription>Captured payments, last 6 months.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {data.revenueTrend.values.length === 0 || data.revenueTrend.values.every((v) => v === 0) ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                No captured payments yet
+              </p>
+            ) : (
+              <div>
+                <div className="flex h-40 items-end gap-3">
+                  {data.revenueTrend.values.map((value, i) => {
+                    const max = Math.max(...data.revenueTrend.values, 1);
+                    const pct = Math.max(4, (value / max) * 100);
+                    return (
+                      <div key={i} className="flex flex-1 flex-col items-center gap-2">
+                        <span className="text-xs font-medium text-muted-foreground">
+                          {formatCurrency(value).replace(/\.\d+/, '')}
+                        </span>
+                        <div
+                          className="w-full rounded-t-md bg-primary/80 transition-colors hover:bg-primary"
+                          style={{ height: `${pct}%` }}
+                        />
+                        <span className="text-xs text-muted-foreground">
+                          {data.revenueTrend.labels[i] ?? ''}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Recent Support Tickets</CardTitle>
+            <CardDescription>Latest open conversations across the platform.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {data.recentTickets.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">No tickets yet</p>
+            ) : (
+              <ul className="space-y-3">
+                {data.recentTickets.map((ticket) => (
+                  <li key={ticket.id}>
+                    <Link href={`/admin/tickets/${ticket.id}`} className="group flex items-center justify-between gap-3 rounded-md px-2 py-1.5 transition-colors hover:bg-muted">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium group-hover:underline">{ticket.subject}</p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {ticket.organizations?.name ?? '-'} · {ticket.profiles?.full_name ?? ticket.profiles?.email ?? '-'}
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <StatusBadge status={ticket.status} />
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -149,41 +222,6 @@ export default function AdminOverviewPage() {
                   ))}
                 </TableBody>
               </Table>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-base">Recent Support Tickets</CardTitle>
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/admin/tickets">
-                View all
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {data.recentTickets.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">No tickets yet</p>
-            ) : (
-              <ul className="space-y-3">
-                {data.recentTickets.map((ticket) => (
-                  <li key={ticket.id}>
-                    <Link href={`/admin/tickets/${ticket.id}`} className="group flex items-center justify-between gap-3 rounded-md px-2 py-1.5 transition-colors hover:bg-muted">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium group-hover:underline">{ticket.subject}</p>
-                        <p className="truncate text-xs text-muted-foreground">
-                          {ticket.organizations?.name ?? '-'} · {ticket.profiles?.full_name ?? ticket.profiles?.email ?? '-'}
-                        </p>
-                      </div>
-                      <div className="flex shrink-0 items-center gap-2">
-                        <StatusBadge status={ticket.status} />
-                      </div>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
             )}
           </CardContent>
         </Card>

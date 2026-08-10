@@ -55,19 +55,21 @@ export default async function PricingPage() {
 
   return (
     <div className="pt-14">
-      <section className="relative overflow-hidden bg-slate-950 text-white">
+      <section className="relative overflow-hidden bg-[#041902] text-white">
         <div
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              'radial-gradient(60% 60% at 50% 0%, rgb(30 41 59 / 0.5) 0%, transparent 60%)'
+              'radial-gradient(60% 60% at 50% 0%, rgb(11 107 99 / 0.25) 0%, transparent 60%)'
           }}
         />
         <div className="relative mx-auto max-w-6xl px-4 pb-20 pt-24 sm:px-6 sm:pt-28">
           <div className="mx-auto max-w-2xl text-center">
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">Simple, honest pricing</h1>
-            <p className="mt-4 text-lg text-slate-300">
-              Every plan includes a 14-day free trial. Pay in INR. Cancel anytime.
+            <h1 className="font-display text-4xl font-bold tracking-tight sm:text-5xl">
+              Simple, honest pricing
+            </h1>
+            <p className="mt-4 text-lg text-white/70">
+              Every plan includes a free trial. Pay in INR. Cancel anytime.
             </p>
           </div>
         </div>
@@ -76,20 +78,20 @@ export default async function PricingPage() {
       <section className="bg-white py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           {plans.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-14 text-center">
-              <h2 className="text-lg font-semibold text-slate-900">Plans are being finalised</h2>
-              <p className="mt-2 text-sm text-slate-500">
+            <div className="rounded-2xl border border-dashed border-[#363D42]/20 bg-[#F7F8FA] p-14 text-center">
+              <h2 className="text-lg font-semibold text-[#363D42]">Plans are being finalised</h2>
+              <p className="mt-2 text-sm text-[#363D42]/60">
                 Our pricing plans are coming soon. Sign up now for early access and lock in launch pricing.
               </p>
               <Link
                 href="/signup"
-                className="mt-6 inline-flex h-10 items-center rounded-lg bg-slate-900 px-6 text-sm font-semibold text-white transition-colors hover:bg-slate-700"
+                className="mt-6 inline-flex h-10 items-center rounded-full bg-[#041902] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#0B6B63]"
               >
                 Get early access
               </Link>
-              <p className="mt-4 text-sm text-slate-400">
+              <p className="mt-4 text-sm text-[#363D42]/50">
                 Need more information?{' '}
-                <Link href="/contact" className="font-semibold text-slate-900 underline underline-offset-4">
+                <Link href="/contact" className="font-semibold text-[#0B6B63] underline underline-offset-4">
                   Contact us
                 </Link>
               </p>
@@ -104,21 +106,21 @@ export default async function PricingPage() {
 
           {plans.length > 1 && comparison.length > 0 && (
             <div className="mt-24">
-              <h2 className="text-center text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+              <h2 className="text-center font-display text-2xl font-bold tracking-tight text-[#363D42] sm:text-3xl">
                 Compare features
               </h2>
-              <p className="mt-3 text-center text-slate-500">
+              <p className="mt-3 text-center text-[#363D42]/60">
                 Everything you need to pick the right plan for your export business.
               </p>
-              <div className="mt-10 overflow-x-auto rounded-2xl border border-slate-200">
+              <div className="mt-10 overflow-x-auto rounded-2xl border border-[#363D42]/10">
                 <table className="w-full min-w-[640px] border-collapse text-sm">
                   <thead>
-                    <tr className="border-b border-slate-200 bg-slate-50">
-                      <th className="px-6 py-4 text-left font-semibold text-slate-900">Features</th>
+                    <tr className="border-b border-[#363D42]/10 bg-[#F7F8FA]">
+                      <th className="px-6 py-4 text-left font-semibold text-[#363D42]">Features</th>
                       {plans.map((plan) => (
-                        <th key={plan.id} className="px-6 py-4 text-left font-semibold text-slate-900">
+                        <th key={plan.id} className="px-6 py-4 text-left font-semibold text-[#363D42]">
                           {plan.name}
-                          <div className="mt-1 text-xs font-normal text-slate-500">
+                          <div className="mt-1 text-xs font-normal text-[#363D42]/50">
                             {formatPrice(plan.price_monthly, plan.currency)}/mo
                           </div>
                         </th>
@@ -127,16 +129,16 @@ export default async function PricingPage() {
                   </thead>
                   <tbody>
                     {comparison.map((feature) => (
-                      <tr key={feature} className="border-b border-slate-100 last:border-0">
-                        <td className="px-6 py-3.5 text-slate-700">{feature}</td>
+                      <tr key={feature} className="border-b border-[#363D42]/10 last:border-0">
+                        <td className="px-6 py-3.5 text-[#363D42]/80">{feature}</td>
                         {plans.map((plan) => {
                           const included = plan.features.includes(feature);
                           return (
                             <td key={plan.id} className="px-6 py-3.5">
                               {included ? (
-                                <Check className="h-4 w-4 text-primary" />
+                                <Check className="h-4 w-4 text-[#0B6B63]" />
                               ) : (
-                                <Minus className="h-4 w-4 text-slate-300" />
+                                <Minus className="h-4 w-4 text-[#363D42]/30" />
                               )}
                             </td>
                           );
@@ -149,58 +151,56 @@ export default async function PricingPage() {
             </div>
           )}
 
-          <div className="mt-24 rounded-2xl bg-slate-50 p-6 text-center text-sm text-slate-500">
-            <ShieldCheck className="mx-auto h-5 w-5 text-slate-400" />
+          <div className="mt-24 rounded-2xl bg-[#F7F8FA] p-6 text-center text-sm text-[#363D42]/60">
+            <ShieldCheck className="mx-auto h-5 w-5 text-[#0B6B63]" />
             <p className="mt-2">
               All plans include SSL security, GDPR-friendly data handling and support for Indian tax
-              compliance.
+              compliance. Secure payments via Razorpay and Stripe.
             </p>
           </div>
         </div>
       </section>
 
-      <section className="bg-slate-50 py-24">
+      <section className="bg-[#F7F8FA] py-24">
         <div className="mx-auto max-w-3xl px-4 sm:px-6">
-          <h2 className="text-center text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+          <h2 className="text-center font-display text-2xl font-bold tracking-tight text-[#363D42] sm:text-3xl">
             Frequently asked questions
           </h2>
           <div className="mt-10 space-y-4">
             {faqs.map((faq) => (
               <details
                 key={faq.question}
-                className="group rounded-2xl border border-slate-200 bg-white p-6"
+                className="group rounded-2xl border border-[#363D42]/10 bg-white p-6 open:bg-white"
               >
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-slate-900">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-[#363D42]">
                   {faq.question}
-                  <span className="text-slate-400 transition-transform group-open:rotate-45">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
-                      <path strokeLinecap="round" d="M12 5v14M5 12h14" />
-                    </svg>
-                  </span>
+                  <span className="text-[#0B6B63] transition-transform group-open:rotate-45">+</span>
                 </summary>
-                <p className="mt-3 text-sm leading-relaxed text-slate-600">{faq.answer}</p>
+                <p className="mt-3 text-sm leading-relaxed text-[#363D42]/60">{faq.answer}</p>
               </details>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="bg-slate-950 py-20 text-white">
+      <section className="bg-[#041902] py-20 text-white">
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Start exporting today</h2>
-          <p className="mt-4 text-slate-300">
-            Join the Indian exporters growing with Export OS. Free for 14 days, no strings attached.
+          <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+            Start exporting today
+          </h2>
+          <p className="mt-4 text-white/70">
+            Join the Indian exporters growing with Export OS. Free to explore, no strings attached.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
               href="/signup"
-              className="inline-flex h-11 items-center gap-2 rounded-lg bg-white px-6 text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-200"
+              className="inline-flex h-11 items-center gap-2 rounded-full bg-white px-6 text-sm font-semibold text-[#041902] transition-colors hover:bg-white/90"
             >
               Start free trial
             </Link>
             <Link
               href="/contact"
-              className="inline-flex h-11 items-center rounded-lg border border-white/20 px-6 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+              className="inline-flex h-11 items-center rounded-full border border-white/20 px-6 text-sm font-semibold text-white transition-colors hover:bg-white/10"
             >
               Talk to sales
             </Link>
