@@ -51,6 +51,17 @@ export async function POST(request: Request) {
       }
     });
 
+    // Notify org members via the in-app notification bell
+    const { notifyOrganizationMembers } = await import('@/lib/services/notifications');
+    await notifyOrganizationMembers(service, parsed.organizationId, {
+      type: 'lead_new',
+      title: `New website inquiry from ${parsed.buyerName}`,
+      body: parsed.companyName
+        ? `${parsed.companyName} · ${parsed.country ?? 'Country not set'}`
+        : parsed.country ?? null,
+      data: { leadId: data?.id ?? '', origin: 'website' }
+    });
+
     if (isSesConfigured()) {
       try {
         const { data: org } = await service
