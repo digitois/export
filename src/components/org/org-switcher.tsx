@@ -20,7 +20,7 @@ interface Organization {
 
 interface OrgSwitcherProps {
   currentOrgId: string;
-  onSwitch: (orgId: string) => void;
+  onSwitch?: () => void;
 }
 
 export function OrgSwitcher({ currentOrgId, onSwitch }: OrgSwitcherProps) {
@@ -51,7 +51,8 @@ export function OrgSwitcher({ currentOrgId, onSwitch }: OrgSwitcherProps) {
       await api('/api/org/switch', { method: 'POST', body: { organizationId: orgId } });
       const newOrg = orgs.find((o) => o.id === orgId);
       if (newOrg) setCurrentOrg(newOrg);
-      onSwitch(orgId);
+      if (onSwitch) onSwitch();
+      else window.location.reload();
       setOpen(false);
     } catch (err) {
       console.error(err);
