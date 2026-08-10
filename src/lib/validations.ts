@@ -677,3 +677,29 @@ export const checkoutSchema = z.object({
   cycle: z.enum(['monthly', 'annual']).default('monthly'),
   totalCount: z.coerce.number().int().min(1).max(120).default(12)
 });
+
+export const saasInvoiceSchema = z.object({
+  organizationId: z.string().uuid(),
+  subscriptionId: z.string().uuid().optional().nullable(),
+  billingPeriodStart: z.string(),
+  billingPeriodEnd: z.string(),
+  issueDate: z.string().optional(),
+  dueDate: z.string().optional().nullable(),
+  currency: z.string().length(3).default('USD'),
+  tax: z.coerce.number().min(0).default(0),
+  notes: z.string().optional().nullable(),
+  status: z.enum(['draft', 'sent', 'paid', 'overdue', 'void']).default('draft'),
+  items: z
+    .array(
+      z.object({
+        description: z.string().min(1),
+        quantity: z.coerce.number().min(0).default(1),
+        unitPrice: z.coerce.number().min(0).default(0)
+      })
+    )
+    .min(1)
+});
+
+export const saasInvoicePaymentSchema = z.object({
+  amount: z.coerce.number().positive()
+});

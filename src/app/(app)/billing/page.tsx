@@ -2,15 +2,34 @@
 
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Save, Loader2, ShieldCheck, CreditCard, Check } from 'lucide-react';
+import { Save, Loader2, ShieldCheck, CreditCard, Check, FileText } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import { PageHeader } from '@/components/page-header';
 import { Loading } from '@/components/loading';
+import { EmptyState } from '@/components/empty-state';
+import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow
+} from '@/components/ui/table';
+import { formatCurrency, formatDate } from '@/lib/utils';
+
+interface SaasInvoiceRow {
+  id: string;
+  invoice_number: string;
+  billing_period_start: string;
+  billing_period_end: string;
+  issue_date: string;
+  due_date?: string | null;
+  currency: string;
+  total: number;
+  amount_paid: number;
+  status: string;
+}
 
 interface GatewayConfig {
   id: string | null;
@@ -72,6 +91,8 @@ const GATEWAY_META: Record<string, { name: string; fields: Array<{ key: string; 
 export default function BillingPage() {
   const [gateways, setGateways] = useState<GatewayConfig[]>([]);
   const [loading, setLoading] = useState(true);
+  const [invoices, setInvoices] = useState<SaasInvoiceRow[]>([]);
+  const [invoicesLoading, setInvoicesLoading] = useState(true);
   const [savingProvider, setSavingProvider] = useState<string | null>(null);
   const [formValues, setFormValues] = useState<Record<string, Record<string, string>>>({});
   const [toggleValues, setToggleValues] = useState<Record<string, boolean>>({});
@@ -98,6 +119,11 @@ export default function BillingPage() {
       })
       .catch((err) => toast.error(err instanceof Error ? err.message : 'Failed to load payment gateways'))
       .finally(() => { if (!cancelled) setLoading(false); });
+
+    api<{ data: SaasInvoiceRow[] }>('/api/billing/invoices?page=1&pageSize=50')
+      .then((res) => { if (!cancelled) setInvoices(res.data); })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setInvoicesLoading(false); });
     return () => { cancelled = true; };
   }, []);
 
@@ -209,6 +235,52 @@ export default function BillingPage() {
           );
         })}
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <FileText className="h-4 w-4 text-muted-foreground" />
+            Your Invoices
+          </CardTitle>
+          <CardDescription>Billing invoices issued to your organization.</CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          {invoicesLoading ? (
+            <div className="p-8"><Loading label="Loading invoices..." /></div>
+          ) : invoices.length === 0 ? (
+            <div className="p-8">
+              <EmptyState icon={FileText} title="No invoices yet" description="Invoices issued by the platform will appear here." />
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Invoice</TableHead>
+                  <TableHead>Period</TableHead>
+                  <TableHead>Issued</TableHead>
+                  <TableHead>Due</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead>Paid</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {invoices.map((inv) => (
+                  <TableRow key={inv.id}>
+                    <TableCell className="font-medium">{inv.invoice_number}</TableCell>
+                    <TableCell className="text-sm">{inv.billing_period_start} → {inv.billing_period_end}</TableCell>
+                    <TableCell className="text-sm">{formatDate(inv.issue_date)}</TableCell>
+                    <TableCell className="text-sm">{inv.due_date ? formatDate(inv.due_date) : '—'}</TableCell>
+                    <TableCell>{formatCurrency(inv.total, inv.currency)}</TableCell>
+                    <TableCell className="text-sm">{formatCurrency(inv.amount_paid, inv.currency)}</TableCell>
+                    <TableCell><StatusBadge status={inv.status} /></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

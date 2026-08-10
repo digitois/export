@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Building2, Users, ReceiptText, LifeBuoy, Package,
-  Flag, Megaphone, ScrollText, type LucideIcon
+  Flag, Megaphone, ScrollText, Repeat, FileText, type LucideIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -12,6 +12,8 @@ const NAV: Array<{ href: string; label: string; icon: LucideIcon }> = [
   { href: '/admin', label: 'Overview', icon: LayoutDashboard },
   { href: '/admin/organizations', label: 'Organizations', icon: Building2 },
   { href: '/admin/users', label: 'Users', icon: Users },
+  { href: '/admin/subscriptions', label: 'Subscriptions', icon: Repeat },
+  { href: '/admin/invoices', label: 'Invoices', icon: FileText },
   { href: '/admin/payments', label: 'Payments', icon: ReceiptText },
   { href: '/admin/tickets', label: 'Support', icon: LifeBuoy },
   { href: '/admin/plans', label: 'Plans', icon: Package },
