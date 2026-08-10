@@ -94,7 +94,8 @@ export default function HrmPage() {
                     </TableCell>
                     <TableCell>{e.designation ?? '—'}</TableCell>
                     <TableCell>{e.department ?? '—'}</TableCell>
-                    <TableCell><StatusBadge status={e.status} /></TableCell>                    <TableCell>{new Intl.NumberFormat(undefined, { style: 'currency', currency: e.currency }).format(e.base_salary)}</TableCell>
+                    <TableCell><StatusBadge status={e.status} /></TableCell>
+                    <TableCell>{e.base_salary != null ? new Intl.NumberFormat(undefined, { style: 'currency', currency: e.currency ?? 'USD' }).format(e.base_salary) : '—'}</TableCell>
                     <TableCell>
                       <div className="flex justify-end">
                         <DropdownMenu>

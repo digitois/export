@@ -63,8 +63,10 @@ const DOT: Record<string, string> = {
   info: 'bg-info'
 };
 
-export function StatusBadge({ status }: { status: string }) {
-  const style = STATUS_STYLES[status] ?? { variant: 'secondary' as const, label: status.replace(/_/g, ' ') };
+export function StatusBadge({ status }: { status?: string | null }) {
+  const style = status
+    ? (STATUS_STYLES[status] ?? { variant: 'secondary' as const, label: status.replace(/_/g, ' ') })
+    : { variant: 'secondary' as const, label: '—' };
   return (
     <Badge variant={style.variant} className="pl-2">
       <span className={cn('h-1.5 w-1.5 rounded-full', DOT[style.variant])} aria-hidden />

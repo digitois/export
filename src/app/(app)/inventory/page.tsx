@@ -242,8 +242,7 @@ export default function InventoryPage() {
                           <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild><Link href={`/warehouses/${wh.id}`}>View</Link></DropdownMenuItem>
-                          <DropdownMenuItem asChild><Link href={`/warehouses/${wh.id}/edit`}>Edit</Link></DropdownMenuItem>
+                          <DropdownMenuItem asChild><Link href={`/warehouses/${wh.id}`}>View / Edit</Link></DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

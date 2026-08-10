@@ -95,7 +95,7 @@ export default function EmployeeDetailPage() {
     );
   }
 
-  const salary = new Intl.NumberFormat(undefined, { style: 'currency', currency: data.currency }).format(data.base_salary);
+  const salary = data.base_salary != null ? new Intl.NumberFormat(undefined, { style: 'currency', currency: data.currency ?? 'USD' }).format(data.base_salary) : '—';
 
   return (
     <div className="space-y-6">
