@@ -8,6 +8,21 @@ import { UserNav } from '@/components/dashboard/user-nav';
 import { OrgSwitcher } from '@/components/org/org-switcher';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  try {
+    return await AppLayoutInner({ children });
+  } catch (err) {
+    console.error('[app/layout] layout render error', err);
+    return (
+      <div style={{ padding: 24, fontFamily: 'monospace', fontSize: 12, whiteSpace: 'pre-wrap' }}>
+        <h1 style={{ fontSize: 18, marginBottom: 12 }}>Layout render error</h1>
+        {err instanceof Error ? err.message : String(err)}
+        {err instanceof Error && err.stack ? `\n\n${err.stack}` : ''}
+      </div>
+    );
+  }
+}
+
+async function AppLayoutInner({ children }: { children: React.ReactNode }) {
   const [user, profile, org] = await Promise.all([getCurrentUser(), getProfile(), getOrgContext()]);
 
   if (!user) redirect('/login');
