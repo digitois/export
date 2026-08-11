@@ -62,7 +62,7 @@ jobs:
 
       - name: Pull Vercel environment
         if: steps.guard.outputs.enabled == 'true'
-        run: vercel pull --yes --environment=${{ steps.env.outputs.vercel_env }} --token="$VERCEL_TOKEN"
+        run: vercel pull --yes --environment=${{ steps.env.outputs.vercel_env }} --token="$VERCEL_TOKEN" && pnpm install --no-frozen-lockfile
 
       - name: Build
         if: steps.guard.outputs.enabled == 'true'
