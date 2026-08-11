@@ -4,60 +4,72 @@
 
 @layer base {
   :root {
-    /* App shell — makoro palette: white canvas, ink #363D42 */
-    --background: 0 0% 100%;
-    --foreground: 210 6% 24%; /* ink #363D42 */
+    /* Export OS Design Tokens — Premium Enterprise Palette */
+    /* Canvas: soft background (never pure white) */
+    --background: 210 40% 97%; /* #F7F8FA */
+    --foreground: 222 47% 11%; /* ink #0F172A */
+    /* Surface: pure white for cards, panels, table rows */
     --card: 0 0% 100%;
-    --card-foreground: 210 6% 24%;
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 210 6% 24%;
-    /* Brand + action (makoro teal #0B6B63) */
-    --primary: 175 81% 23%;
+    --popover-foreground: 222 47% 11%;
+    /* Brand + action: customs-green (evokes clearance/go) */
+    --primary: 162 57% 28%; /* #1E6F5C */
     --primary-foreground: 0 0% 98%;
-    --accent: 175 40% 95%; /* teal-tint wash */
-    --accent-foreground: 175 60% 18%;
+    --accent: 162 57% 94%; /* accent tint #E8F2EE */
+    --accent-foreground: 162 57% 28%;
     /* Neutrals */
-    --secondary: 210 10% 97%;
-    --secondary-foreground: 210 6% 24%;
-    --muted: 210 10% 97%;
-    --muted-foreground: 210 5% 45%;
-    --destructive: 348 77% 46%;
+    --secondary: 215 16% 47%; /* muted #64748B */
+    --secondary-foreground: 0 0% 98%;
+    --muted: 215 16% 47%;
+    --muted-foreground: 215 16% 47%;
+    --destructive: 354 76% 41%; /* neg #B42318 */
     --destructive-foreground: 0 0% 98%;
-    --border: 210 10% 90%;
-    --input: 210 10% 90%;
-    --ring: 175 81% 23%;
+    --border: 225 40% 95%; /* line #E7EAF0 */
+    --input: 225 40% 95%;
+    --ring: 162 57% 28%;
     --radius: 0.75rem;
-    /* Semantic (paired with icon/label) — makoro module accents */
-    --pos: 160 60% 30%; /* emerald #059669 */
-    --warn: 32 95% 44%; /* amber #D97706 */
-    --neg: 348 77% 46%; /* rose #E11D48 */
-    --info: 217 91% 55%; /* blue #3B82F6 */
+    /* Semantic (paired with icon/label) — export journey colors */
+    --pos: 156 70% 29%; /* #157F5B */
+    --warn: 24 87% 38%; /* #B45309 */
+    --neg: 354 76% 41%; /* #B42318 */
+    --info: 217 77% 46%; /* #1D4ED8 */
+    /* Additional enterprise tokens */
+    --canvas: 210 40% 97%; /* #F7F8FA */
+    --surface: 0 0% 100%; /* #FFFFFF */
+    --line: 225 40% 95%; /* #E7EAF0 */
+    --accent-weak: 162 57% 94%; /* #E8F2EE */
   }
 
   .dark {
-    --background: 175 25% 6%;
+    /* Dark mode variant — maintain brand identity */
+    --background: 222 47% 6%;
     --foreground: 210 20% 96%;
-    --card: 175 22% 9%;
+    --card: 222 47% 8%;
     --card-foreground: 210 20% 96%;
-    --popover: 175 22% 9%;
+    --popover: 222 47% 8%;
     --popover-foreground: 210 20% 96%;
-    --primary: 175 60% 52%;
-    --primary-foreground: 175 60% 8%;
-    --accent: 175 30% 16%;
-    --accent-foreground: 175 50% 78%;
-    --secondary: 210 15% 14%;
+    --primary: 162 57% 52%;
+    --primary-foreground: 162 57% 8%;
+    --accent: 162 57% 16%;
+    --accent-foreground: 162 57% 78%;
+    --secondary: 215 16% 20%;
     --secondary-foreground: 210 20% 96%;
-    --muted: 210 15% 14%;
-    --muted-foreground: 210 10% 62%;
-    --destructive: 348 65% 50%;
+    --muted: 215 16% 20%;
+    --muted-foreground: 215 16% 65%;
+    --destructive: 354 76% 55%;
     --destructive-foreground: 0 0% 98%;
-    --border: 210 15% 16%;
-    --input: 210 15% 16%;
-    --ring: 175 60% 52%;
-    --pos: 160 55% 48%;
-    --warn: 32 90% 58%;
-    --neg: 348 70% 56%;
-    --info: 217 80% 62%;
+    --border: 215 16% 15%;
+    --input: 215 16% 15%;
+    --ring: 162 57% 52%;
+    --pos: 156 70% 55%;
+    --warn: 24 87% 55%;
+    --neg: 354 76% 60%;
+    --info: 217 77% 65%;
+    --canvas: 222 47% 6%;
+    --surface: 222 47% 8%;
+    --line: 215 16% 15%;
+    --accent-weak: 162 57% 16%;
   }
 }
 
@@ -66,7 +78,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-canvas text-foreground antialiased;
   }
   .font-display {
     font-family: var(--font-display), var(--font-inter), system-ui, sans-serif;
@@ -98,5 +110,18 @@
     .animate-fade-up {
       animation: none;
     }
+  }
+  /* Enterprise UI utilities */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface;
+  }
+  .card-shadow {
+    box-shadow: 0 1px 2px rgba(16,24,40,.04), 0 1px 3px rgba(16,24,40,.06);
+  }
+  .hairline-border {
+    border: 1px solid hsl(var(--line));
   }
 }

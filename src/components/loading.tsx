@@ -23,8 +23,8 @@ export function Spinner({ className }: { className?: string }) {
 export function Loading({ className, label = 'Loading...' }: LoadingProps) {
   return (
     <div className={cn('flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground', className)}>
-      <Spinner className="h-8 w-8" />
-      <p className="text-sm">{label}</p>
+      <Spinner className="h-8 w-8 text-primary" />
+      <p className="text-sm font-medium">{label}</p>
     </div>
   );
 }

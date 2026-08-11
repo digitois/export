@@ -27,15 +27,15 @@ const companyLinks = [
 
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col bg-white text-[#363D42]">
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#041902]/95 backdrop-blur">
+    <div className="flex min-h-screen flex-col bg-white text-foreground">
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0F172A]/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-[#041902]">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1E6F5C] text-white">
               <Ship className="h-4 w-4" />
             </div>
             <span className="text-lg font-semibold tracking-tight text-white">
-              Export<span className="text-[#0B6B63]">OS</span>
+              Export<span className="text-[#1E6F5C]">OS</span>
             </span>
           </Link>
 
@@ -60,7 +60,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
             </Link>
             <Link
               href="/signup"
-              className="inline-flex h-9 items-center gap-1.5 rounded-full bg-white px-5 text-sm font-semibold text-[#041902] transition-all hover:bg-white/90"
+              className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[#1E6F5C] px-5 text-sm font-semibold text-white transition-all hover:bg-[#157F5B]"
             >
               Start free
               <ArrowRight className="h-4 w-4" />
@@ -73,7 +73,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
                 <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </summary>
-            <div className="absolute right-4 top-16 w-56 rounded-xl border border-white/10 bg-[#041902] p-3 shadow-2xl">
+            <div className="absolute right-4 top-16 w-56 rounded-xl border border-white/10 bg-[#0F172A] p-3 shadow-2xl">
               {nav.map((item) => (
                 <Link
                   key={item.href}
@@ -92,7 +92,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
                 </Link>
                 <Link
                   href="/signup"
-                  className="mt-1 block rounded-full bg-white px-3 py-2 text-center text-sm font-semibold text-[#041902] hover:bg-white/90"
+                  className="mt-1 block rounded-full bg-[#1E6F5C] px-3 py-2 text-center text-sm font-semibold text-white hover:bg-[#157F5B]"
                 >
                   Start free
                 </Link>
@@ -104,16 +104,16 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
 
       <main className="flex-1">{children}</main>
 
-      <footer className="bg-[#041902] text-white/60">
+      <footer className="bg-[#0F172A] text-white/60">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="grid gap-10 md:grid-cols-3">
             <div>
               <Link href="/" className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-[#041902]">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1E6F5C] text-white">
                   <Ship className="h-4 w-4" />
                 </div>
                 <span className="text-lg font-semibold tracking-tight text-white">
-                  Export<span className="text-[#0B6B63]">OS</span>
+                  Export<span className="text-[#1E6F5C]">OS</span>
                 </span>
               </Link>
               <p className="mt-4 max-w-xs text-sm leading-relaxed">

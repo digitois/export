@@ -44,9 +44,10 @@ const config: Config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))'
         },
-        canvas: 'hsl(var(--background))',
-        line: 'hsl(var(--border))',
-        'accent-weak': 'hsl(var(--accent))',
+        canvas: 'hsl(var(--canvas))',
+        line: 'hsl(var(--line))',
+        'accent-weak': 'hsl(var(--accent-weak))',
+        surface: 'hsl(var(--surface))',
         pos: 'hsl(var(--pos))',
         warn: 'hsl(var(--warn))',
         neg: 'hsl(var(--neg))',
