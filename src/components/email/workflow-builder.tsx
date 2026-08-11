@@ -6,12 +6,12 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { 
   Play, Save, Trash2, Plus, Settings, ChevronRight,
-  Mail, Users, FileText, Clock, Globe, Webhook, Zap
+  Mail, Users, FileText, Clock, Globe, Webhook, Zap, Split, Target
 } from 'lucide-react';
 
 interface WorkflowNode {
   id: string;
-  type: 'trigger' | 'action' | 'condition' | 'delay' | 'integration' | 'end';
+  type: 'trigger' | 'action' | 'condition' | 'delay' | 'integration' | 'end' | 'drip_sequence' | 'split_path' | 'goal' | 'wait_until' | 'segment';
   actionType?: string;
   position: { x: number; y: number };
   config: Record<string, unknown>;
@@ -35,6 +35,7 @@ interface Workflow {
   nodes: WorkflowNode[];
   edges: WorkflowEdge[];
   isActive: boolean;
+  nodeTypes?: string[]; // Allow custom node types
 }
 
 interface WorkflowBuilderProps {
@@ -50,6 +51,11 @@ const nodeTypes = [
   { type: 'delay', icon: Clock, label: 'Delay', color: 'bg-orange-500' },
   { type: 'integration', icon: Globe, label: 'Integration', color: 'bg-green-500' },
   { type: 'end', icon: ChevronRight, label: 'End', color: 'bg-gray-500' },
+  { type: 'drip_sequence', icon: Mail, label: 'Drip Sequence', color: 'bg-indigo-500' },
+  { type: 'split_path', icon: Split, label: 'Split Path', color: 'bg-pink-500' },
+  { type: 'goal', icon: Target, label: 'Goal', color: 'bg-teal-500' },
+  { type: 'wait_until', icon: Clock, label: 'Wait Until', color: 'bg-cyan-500' },
+  { type: 'segment', icon: Users, label: 'Segment', color: 'bg-rose-500' },
 ];
 
 const actionTypes = [
@@ -76,6 +82,14 @@ const triggerTypes = [
   { value: 'time_based', label: 'Time Based' },
   { value: 'webhook', label: 'Webhook' },
   { value: 'manual', label: 'Manual' },
+  { value: 'email_opened', label: 'Email Opened' },
+  { value: 'email_clicked', label: 'Email Clicked' },
+  { value: 'link_clicked', label: 'Link Clicked' },
+  { value: 'form_submitted', label: 'Form Submitted' },
+  { value: 'page_visited', label: 'Page Visited' },
+  { value: 'product_viewed', label: 'Product Viewed' },
+  { value: 'cart_abandoned', label: 'Cart Abandoned' },
+  { value: 'purchase_completed', label: 'Purchase Completed' },
 ];
 
 export function WorkflowBuilder({ workflow, onSave, onCancel }: WorkflowBuilderProps) {
@@ -477,6 +491,96 @@ export function WorkflowBuilder({ workflow, onSave, onCancel }: WorkflowBuilderP
                     </option>
                   ))}
                 </select>
+              </div>
+            )}
+
+            {selectedNode.type === 'drip_sequence' && (
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Drip Sequence Config</label>
+                <textarea
+                  value={JSON.stringify(selectedNode.config, null, 2)}
+                  onChange={(e) => {
+                    try {
+                      updateNode(selectedNode.id, { config: JSON.parse(e.target.value) });
+                    } catch {
+                      // Invalid JSON, ignore
+                    }
+                  }}
+                  className="w-full h-32 p-2 border border-line rounded-lg bg-surface font-mono text-sm"
+                  placeholder='{"steps": [{"delay_days": 1, "template_id": "..."}]}'
+                />
+              </div>
+            )}
+
+            {selectedNode.type === 'split_path' && (
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Split Path Config</label>
+                <textarea
+                  value={JSON.stringify(selectedNode.config, null, 2)}
+                  onChange={(e) => {
+                    try {
+                      updateNode(selectedNode.id, { config: JSON.parse(e.target.value) });
+                    } catch {
+                      // Invalid JSON, ignore
+                    }
+                  }}
+                  className="w-full h-32 p-2 border border-line rounded-lg bg-surface font-mono text-sm"
+                  placeholder='{"split_type": "percentage", "paths": [{"id": "a", "percentage": 50, "target_node_id": "..."}]}'
+                />
+              </div>
+            )}
+
+            {selectedNode.type === 'goal' && (
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Goal Config</label>
+                <textarea
+                  value={JSON.stringify(selectedNode.config, null, 2)}
+                  onChange={(e) => {
+                    try {
+                      updateNode(selectedNode.id, { config: JSON.parse(e.target.value) });
+                    } catch {
+                      // Invalid JSON, ignore
+                    }
+                  }}
+                  className="w-full h-32 p-2 border border-line rounded-lg bg-surface font-mono text-sm"
+                  placeholder='{"goal_type": "email_opened", "is_required": true}'
+                />
+              </div>
+            )}
+
+            {selectedNode.type === 'wait_until' && (
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Wait Until Config</label>
+                <textarea
+                  value={JSON.stringify(selectedNode.config, null, 2)}
+                  onChange={(e) => {
+                    try {
+                      updateNode(selectedNode.id, { config: JSON.parse(e.target.value) });
+                    } catch {
+                      // Invalid JSON, ignore
+                    }
+                  }}
+                  className="w-full h-32 p-2 border border-line rounded-lg bg-surface font-mono text-sm"
+                  placeholder='{"condition_type": "day_of_week", "day": 1}'
+                />
+              </div>
+            )}
+
+            {selectedNode.type === 'segment' && (
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Segment Config</label>
+                <textarea
+                  value={JSON.stringify(selectedNode.config, null, 2)}
+                  onChange={(e) => {
+                    try {
+                      updateNode(selectedNode.id, { config: JSON.parse(e.target.value) });
+                    } catch {
+                      // Invalid JSON, ignore
+                    }
+                  }}
+                  className="w-full h-32 p-2 border border-line rounded-lg bg-surface font-mono text-sm"
+                  placeholder='{"segment_id": "...", "action": "add_to_segment"}'
+                />
               </div>
             )}
 
