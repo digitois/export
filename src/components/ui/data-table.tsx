@@ -87,8 +87,8 @@ export function DataTable<TData, TValue>({
               <DropdownMenuSeparator />
               {table
                 .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => {
+                .filter((column: any) => column.getCanHide())
+                .map((column: any) => {
                   return (
                     <DropdownMenuCheckboxItem
                       key={column.id}
@@ -107,9 +107,9 @@ export function DataTable<TData, TValue>({
       <div className="rounded-lg border border-line bg-surface card-shadow">
         <Table>
           <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
+            {table.getHeaderGroups().map((headerGroup: any) => (
               <TableRow key={headerGroup.id} className="hover:bg-transparent">
-                {headerGroup.headers.map((header) => {
+                {headerGroup.headers.map((header: any) => {
                   return (
                     <TableHead key={header.id} className="px-4 py-3">
                       {header.isPlaceholder ? null : (
@@ -134,13 +134,13 @@ export function DataTable<TData, TValue>({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
+              table.getRowModel().rows.map((row: any) => (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
                   className="hover:bg-canvas/50 border-b border-line"
                 >
-                  {row.getVisibleCells().map((cell) => (
+                  {row.getVisibleCells().map((cell: any) => (
                     <TableCell key={cell.id} className="px-4 py-4">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
