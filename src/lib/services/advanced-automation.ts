@@ -332,15 +332,26 @@ export async function trackBehavioralEvent(
   if (!error) {
     // Trigger workflows based on behavioral events
     const fullEvent: BehavioralEvent = {
-      ...event,
       id: data.id,
       organization_id: organizationId,
-      occurred_at: data.occurred_at
+      occurred_at: data.occurred_at,
+      event_type: event.event_type,
+      event_data: event.event_data,
+      contact_id: event.contact_id,
+      lead_id: event.lead_id,
+      session_id: event.session_id,
+      ip_address: event.ip_address,
+      user_agent: event.user_agent,
+      referrer: event.referrer
     };
     await triggerBehavioralWorkflows(supabase, organizationId, event.event_type, fullEvent);
   }
 
-  return { data, error };
+  if (error) {
+    return { data: null, error: new Error(error.message) };
+  }
+
+  return { data, error: undefined };
 }
 
 async function triggerBehavioralWorkflows(
