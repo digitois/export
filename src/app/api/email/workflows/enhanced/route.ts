@@ -1,39 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/auth/require-auth';
+import { requireAuth, handleApiError, ok } from '@/lib/api';
 import { createWorkflow, listWorkflows, getWorkflow, updateWorkflow, deleteWorkflow, getWorkflowWithNodes } from '@/lib/services/email-workflows';
 
 export async function GET(request: NextRequest) {
-  const auth = await requireAuth();
-  if (auth.error) return auth.error;
+  try {
+    const ctx = await requireAuth();
+    const { searchParams } = new URL(request.url);
+    const activeOnly = searchParams.get('active_only') === 'true';
 
-  const { searchParams } = new URL(request.url);
-  const activeOnly = searchParams.get('active_only') === 'true';
+    const { data, error } = await listWorkflows(ctx.supabase, ctx.organizationId, activeOnly);
+    
+    if (error) {
+      return ok({ error: error.message }, { status: 400 });
+    }
 
-  const { data, error } = await listWorkflows(auth.supabase, auth.organizationId, activeOnly);
-  
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return ok({ data });
+  } catch (err) {
+    return handleApiError(err);
   }
-
-  return NextResponse.json({ data });
 }
 
 export async function POST(request: NextRequest) {
-  const auth = await requireAuth();
-  if (auth.error) return auth.error;
+  try {
+    const ctx = await requireAuth();
+    const body = await request.json();
 
-  const body = await request.json();
+    const { data, error } = await createWorkflow(
+      ctx.supabase,
+      ctx.organizationId,
+      ctx.userId,
+      body
+    );
 
-  const { data, error } = await createWorkflow(
-    auth.supabase,
-    auth.organizationId,
-    auth.user.id,
-    body
-  );
+    if (error) {
+      return ok({ error: error.message }, { status: 400 });
+    }
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return ok({ data });
+  } catch (err) {
+    return handleApiError(err);
   }
-
-  return NextResponse.json({ data });
 }

@@ -81,6 +81,7 @@ export interface BehavioralEvent {
   user_agent?: string;
   referrer?: string;
   occurred_at: string;
+  [key: string]: unknown; // Index signature for Record<string, unknown> compatibility
 }
 
 export interface SplitPath {
@@ -178,7 +179,7 @@ export async function processDripCampaignStep(
     .single();
 
   if (!recipient || recipient.status !== 'active') {
-    return { error: 'Recipient not found or not active' };
+    return { error: new Error('Recipient not found or not active') };
   }
 
   const campaign = recipient.drip_campaign as DripCampaign;
@@ -209,7 +210,7 @@ export async function processDripCampaignStep(
     .single();
 
   if (!template) {
-    return { error: 'Template not found' };
+    return { error: new Error('Template not found') };
   }
 
   // Get contact details
@@ -220,7 +221,7 @@ export async function processDripCampaignStep(
     .single();
 
   if (!contact) {
-    return { error: 'Contact not found' };
+    return { error: new Error('Contact not found') };
   }
 
   // Send email
@@ -247,7 +248,7 @@ export async function processDripCampaignStep(
     return { data: { status: 'sent', next_step: nextStep, messageId: result.messageId } };
   }
 
-  return { error: 'Failed to send email' };
+  return { error: new Error('Failed to send email') };
 }
 
 // ============================================
@@ -313,7 +314,13 @@ export async function trackBehavioralEvent(
 
   if (!error) {
     // Trigger workflows based on behavioral events
-    await triggerBehavioralWorkflows(supabase, organizationId, event.event_type, event);
+    const fullEvent: BehavioralEvent = {
+      ...event,
+      id: data.id,
+      organization_id: organizationId,
+      occurred_at: data.occurred_at
+    };
+    await triggerBehavioralWorkflows(supabase, organizationId, event.event_type, fullEvent);
   }
 
   return { data, error };
@@ -466,7 +473,7 @@ export async function assignVariant(
   supabase: SupabaseClient,
   testId: string,
   contactId: string
-): Promise<{ variantId: string | null; error?: string }> {
+): Promise<{ variantId: string | null; error?: Error }> {
   const { data: test } = await supabase
     .from('ab_test_campaigns')
     .select('*')
@@ -474,7 +481,7 @@ export async function assignVariant(
     .single();
 
   if (!test) {
-    return { variantId: null, error: 'Test not found' };
+    return { variantId: null, error: new Error('Test not found') };
   }
 
   const variants = test.variants as Array<{ id: string; traffic_percentage: number }>;
@@ -647,7 +654,7 @@ export async function refreshSegmentMembership(supabase: SupabaseClient, segment
   // Get all contacts in the organization
   const { data: contacts } = await supabase
     .from('email_contacts')
-    .select('id, lead_id')
+    .select('id, lead_id, email, name')
     .eq('organization_id', segment.organization_id);
 
   if (!contacts) return;
@@ -786,7 +793,7 @@ export async function assignSplitPath(
 
 export async function evaluateWaitUntilCondition(
   waitConfig: Record<string, unknown>
-): { shouldProceed: boolean; nextCheckAt?: Date } {
+): Promise<{ shouldProceed: boolean; nextCheckAt?: Date }> {
   const conditionType = waitConfig.condition_type as string;
 
   switch (conditionType) {

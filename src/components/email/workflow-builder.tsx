@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { 
   Play, Save, Trash2, Plus, Settings, ChevronRight,
-  Mail, Users, FileText, Clock, Globe, Webhook, Zap, Split, Target
+  Mail, Users, FileText, Clock, Globe, Webhook, Zap, GitBranch, Target
 } from 'lucide-react';
 
 interface WorkflowNode {
@@ -44,7 +44,7 @@ interface WorkflowBuilderProps {
   onCancel?: () => void;
 }
 
-const nodeTypes = [
+const nodeTypes: Array<{ type: 'trigger' | 'action' | 'condition' | 'delay' | 'integration' | 'end' | 'drip_sequence' | 'split_path' | 'goal' | 'wait_until' | 'segment'; icon: any; label: string; color: string }> = [
   { type: 'trigger', icon: Zap, label: 'Trigger', color: 'bg-purple-500' },
   { type: 'action', icon: Mail, label: 'Action', color: 'bg-blue-500' },
   { type: 'condition', icon: FileText, label: 'Condition', color: 'bg-yellow-500' },
@@ -52,7 +52,7 @@ const nodeTypes = [
   { type: 'integration', icon: Globe, label: 'Integration', color: 'bg-green-500' },
   { type: 'end', icon: ChevronRight, label: 'End', color: 'bg-gray-500' },
   { type: 'drip_sequence', icon: Mail, label: 'Drip Sequence', color: 'bg-indigo-500' },
-  { type: 'split_path', icon: Split, label: 'Split Path', color: 'bg-pink-500' },
+  { type: 'split_path', icon: GitBranch, label: 'Split Path', color: 'bg-pink-500' },
   { type: 'goal', icon: Target, label: 'Goal', color: 'bg-teal-500' },
   { type: 'wait_until', icon: Clock, label: 'Wait Until', color: 'bg-cyan-500' },
   { type: 'segment', icon: Users, label: 'Segment', color: 'bg-rose-500' },
@@ -456,7 +456,7 @@ export function WorkflowBuilder({ workflow, onSave, onCancel }: WorkflowBuilderP
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => deleteNode(selectedNode)}
+              onClick={() => deleteNode(selectedNode.id)}
             >
               <Trash2 className="w-4 h-4" />
             </Button>

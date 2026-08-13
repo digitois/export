@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { 
-  Type, Image, Link as LinkIcon, Layout, Separator, 
+  Type, Image, Link as LinkIcon, Layout, Minus, 
   Trash2, Plus, Eye, Code, Save 
 } from 'lucide-react';
 
@@ -33,7 +33,7 @@ const blockTypes = [
   { type: 'text', icon: Type, label: 'Text', defaultContent: { text: 'Enter your text here...' } },
   { type: 'image', icon: Image, label: 'Image', defaultContent: { url: '', alt: 'Image' } },
   { type: 'button', icon: LinkIcon, label: 'Button', defaultContent: { text: 'Click Here', url: '#' } },
-  { type: 'divider', icon: Separator, label: 'Divider', defaultContent: {} },
+  { type: 'divider', icon: Minus, label: 'Divider', defaultContent: {} },
   { type: 'spacer', icon: Layout, label: 'Spacer', defaultContent: { height: 20 } },
   { type: 'html', icon: Code, label: 'HTML', defaultContent: { html: '<div>Custom HTML</div>' } },
 ];

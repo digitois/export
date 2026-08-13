@@ -5,8 +5,8 @@ import { sendEmail } from '@/lib/email';
 export interface WorkflowNode {
   id: string;
   workflow_id: string;
-  node_type: 'trigger' | 'action' | 'condition' | 'delay' | 'integration' | 'end';
-  action_type?: 'send_email' | 'add_to_list' | 'update_lead' | 'create_task' | 'notify_team' | 'send_sms' | 'send_whatsapp' | 'webhook_call';
+  node_type: 'trigger' | 'action' | 'condition' | 'delay' | 'integration' | 'end' | 'drip_sequence' | 'split_path' | 'goal' | 'wait_until' | 'segment';
+  action_type?: 'send_email' | 'add_to_list' | 'update_lead' | 'create_task' | 'notify_team' | 'send_sms' | 'send_whatsapp' | 'webhook_call' | 'add_tag' | 'remove_tag' | 'update_contact_score' | 'remove_from_list';
   position_x: number;
   position_y: number;
   config: Record<string, unknown>;
@@ -328,7 +328,7 @@ async function executeWorkflow(
       const executionResult = await executeNode(supabase, organizationId, currentNode, triggerData, runId);
 
       if (executionResult.error) {
-        await updateRunStatus(supabase, runId, 'failed', executionResult.error);
+        await updateRunStatus(supabase, runId, 'failed', executionResult.error.message);
         return;
       }
 
@@ -395,7 +395,7 @@ async function executeNode(
         result = await executeIntegrationNode(supabase, node, triggerData);
         break;
       default:
-        result = { error: `Unknown node type: ${node.node_type}` };
+        result = { error: new Error(`Unknown node type: ${node.node_type}`) };
     }
 
     // Update step log
@@ -405,7 +405,7 @@ async function executeNode(
         .update({
           status: result.error ? 'failed' : 'completed',
           output_data: result.data,
-          error_message: result.error,
+          error_message: result.error?.message,
           completed_at: new Date().toISOString()
         })
         .eq('id', stepLog.id);
@@ -438,7 +438,7 @@ async function executeActionNode(
   triggerData: Record<string, unknown>
 ) {
   if (!node.action_type) {
-    return { error: 'Action node missing action_type' };
+    return { error: new Error('Action node missing action_type') };
   }
 
   switch (node.action_type) {
@@ -453,7 +453,7 @@ async function executeActionNode(
     case 'notify_team':
       return await executeNotifyTeam(supabase, organizationId, node.config, triggerData);
     default:
-      return { error: `Unsupported action type: ${node.action_type}` };
+      return { error: new Error(`Unsupported action type: ${node.action_type}`) };
   }
 }
 
@@ -467,7 +467,7 @@ async function executeSendEmail(
   const to = config.to as string || triggerData.email as string;
   
   if (!templateId || !to) {
-    return { error: 'Missing template_id or recipient email' };
+    return { error: new Error('Missing template_id or recipient email') };
   }
 
   // Get template
@@ -478,7 +478,7 @@ async function executeSendEmail(
     .single();
 
   if (!template) {
-    return { error: 'Template not found' };
+    return { error: new Error('Template not found') };
   }
 
   // Render template with trigger data
@@ -509,7 +509,7 @@ async function executeSendEmail(
     return { data: { messageId: result.messageId } };
   }
 
-  return { error: 'Failed to send email' };
+  return { error: new Error('Failed to send email') };
 }
 
 async function executeAddToList(
@@ -523,7 +523,7 @@ async function executeAddToList(
   const name = triggerData.name as string;
 
   if (!listId || !email) {
-    return { error: 'Missing list_id or email' };
+    return { error: new Error('Missing list_id or email') };
   }
 
   const { error } = await supabase
@@ -539,7 +539,7 @@ async function executeAddToList(
     });
 
   if (error) {
-    return { error: error.message };
+    return { error: new Error(error.message) };
   }
 
   return { data: { addedToList: listId } };
@@ -555,7 +555,7 @@ async function executeUpdateLead(
   const updates = config.updates as Record<string, unknown>;
 
   if (!leadId || !updates) {
-    return { error: 'Missing lead_id or updates' };
+    return { error: new Error('Missing lead_id or updates') };
   }
 
   const { error } = await supabase
@@ -565,7 +565,7 @@ async function executeUpdateLead(
     .eq('organization_id', organizationId);
 
   if (error) {
-    return { error: error.message };
+    return { error: new Error(error.message) };
   }
 
   return { data: { updatedLead: leadId } };
@@ -623,7 +623,7 @@ async function executeIntegrationNode(
     case 'webhook':
       return await executeWebhook(node.config, triggerData);
     default:
-      return { error: `Unsupported integration: ${integrationType}` };
+      return { error: new Error(`Unsupported integration: ${integrationType}`) };
   }
 }
 
@@ -635,7 +635,7 @@ async function executeWebhook(
   const method = (config.method as string) || 'POST';
   
   if (!url) {
-    return { error: 'Missing webhook URL' };
+    return { error: new Error('Missing webhook URL') };
   }
 
   try {
@@ -648,12 +648,12 @@ async function executeWebhook(
     });
 
     if (!response.ok) {
-      return { error: `Webhook failed with status ${response.status}` };
+      return { error: new Error(`Webhook failed with status ${response.status}`) };
     }
 
     return { data: { webhookExecuted: true, status: response.status } };
   } catch (error) {
-    return { error: error instanceof Error ? error.message : 'Webhook execution failed' };
+    return { error: error instanceof Error ? error : new Error('Webhook execution failed') };
   }
 }
 

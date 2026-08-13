@@ -8,39 +8,71 @@
 
 -- Enhanced node types for advanced automation
 do $$ begin
-  drop type if exists public.workflow_node_type cascade;
-  create type public.workflow_node_type as enum (
-    'trigger', 'action', 'condition', 'delay', 'integration', 'end',
-    'drip_sequence', 'split_path', 'goal', 'wait_until', 'segment'
-  );
-exception
-  when others then null;
+  if not exists (select 1 from pg_type t join pg_namespace n on n.oid = t.typnamespace where t.typname = 'workflow_node_type' and n.nspname = 'public') then
+    create type public.workflow_node_type as enum (
+      'trigger', 'action', 'condition', 'delay', 'integration', 'end',
+      'drip_sequence', 'split_path', 'goal', 'wait_until', 'segment'
+    );
+  else
+    -- Add new node types to existing enum
+    do $$ begin
+      alter type public.workflow_node_type add value if not exists 'drip_sequence';
+      alter type public.workflow_node_type add value if not exists 'split_path';
+      alter type public.workflow_node_type add value if not exists 'goal';
+      alter type public.workflow_node_type add value if not exists 'wait_until';
+      alter type public.workflow_node_type add value if not exists 'segment';
+    exception
+      when duplicate_object then null;
+    end $$;
+  end if;
 end $$;
 
 -- Enhanced action types
 do $$ begin
-  drop type if exists public.workflow_action_type cascade;
-  create type public.workflow_action_type as enum (
-    'send_email', 'add_to_list', 'update_lead', 'create_task', 
-    'notify_team', 'send_sms', 'send_whatsapp', 'webhook_call',
-    'add_tag', 'remove_tag', 'update_contact_score', 'remove_from_list'
-  );
-exception
-  when others then null;
+  if not exists (select 1 from pg_type t join pg_namespace n on n.oid = t.typnamespace where t.typname = 'workflow_action_type' and n.nspname = 'public') then
+    create type public.workflow_action_type as enum (
+      'send_email', 'add_to_list', 'update_lead', 'create_task', 
+      'notify_team', 'send_sms', 'send_whatsapp', 'webhook_call',
+      'add_tag', 'remove_tag', 'update_contact_score', 'remove_from_list'
+    );
+  else
+    -- Add new action types to existing enum
+    do $$ begin
+      alter type public.workflow_action_type add value if not exists 'add_tag';
+      alter type public.workflow_action_type add value if not exists 'remove_tag';
+      alter type public.workflow_action_type add value if not exists 'update_contact_score';
+      alter type public.workflow_action_type add value if not exists 'remove_from_list';
+    exception
+      when duplicate_object then null;
+    end $$;
+  end if;
 end $$;
 
 -- Enhanced trigger types with behavioral events
 do $$ begin
-  drop type if exists public.workflow_trigger cascade;
-  create type public.workflow_trigger as enum (
-    'lead_created', 'lead_status_changed', 'lead_converted', 'lead_lost',
-    'inquiry_received', 'document_sent', 'invoice_due', 'payment_received',
-    'website_event', 'time_based', 'webhook', 'manual',
-    'email_opened', 'email_clicked', 'link_clicked', 'form_submitted',
-    'page_visited', 'product_viewed', 'cart_abandoned', 'purchase_completed'
-  );
-exception
-  when others then null;
+  if not exists (select 1 from pg_type t join pg_namespace n on n.oid = t.typnamespace where t.typname = 'workflow_trigger' and n.nspname = 'public') then
+    create type public.workflow_trigger as enum (
+      'lead_created', 'lead_status_changed', 'lead_converted', 'lead_lost',
+      'inquiry_received', 'document_sent', 'invoice_due', 'payment_received',
+      'website_event', 'time_based', 'webhook', 'manual',
+      'email_opened', 'email_clicked', 'link_clicked', 'form_submitted',
+      'page_visited', 'product_viewed', 'cart_abandoned', 'purchase_completed'
+    );
+  else
+    -- Add new trigger types to existing enum
+    do $$ begin
+      alter type public.workflow_trigger add value if not exists 'email_opened';
+      alter type public.workflow_trigger add value if not exists 'email_clicked';
+      alter type public.workflow_trigger add value if not exists 'link_clicked';
+      alter type public.workflow_trigger add value if not exists 'form_submitted';
+      alter type public.workflow_trigger add value if not exists 'page_visited';
+      alter type public.workflow_trigger add value if not exists 'product_viewed';
+      alter type public.workflow_trigger add value if not exists 'cart_abandoned';
+      alter type public.workflow_trigger add value if not exists 'purchase_completed';
+    exception
+      when duplicate_object then null;
+    end $$;
+  end if;
 end $$;
 
 -- Condition operators for advanced branching

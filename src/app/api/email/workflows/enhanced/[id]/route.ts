@@ -1,100 +1,114 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/auth/require-auth';
+import { requireAuth, handleApiError, ok } from '@/lib/api';
 import { getWorkflow, updateWorkflow, deleteWorkflow, getWorkflowWithNodes, triggerWorkflow } from '@/lib/services/email-workflows';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const auth = await requireAuth();
-  if (auth.error) return auth.error;
+  try {
+    const ctx = await requireAuth();
+    const { id } = await params;
+    const { searchParams } = new URL(request.url);
+    const includeNodes = searchParams.get('include_nodes') === 'true';
 
-  const { searchParams } = new URL(request.url);
-  const includeNodes = searchParams.get('include_nodes') === 'true';
+    if (includeNodes) {
+      const { data, error } = await getWorkflowWithNodes(ctx.supabase, ctx.organizationId, id);
+      
+      if (error) {
+        return ok({ error: error.message }, { status: 400 });
+      }
 
-  if (includeNodes) {
-    const { data, error } = await getWorkflowWithNodes(auth.supabase, auth.organizationId, params.id);
-    
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      return ok({ data });
     }
 
-    return NextResponse.json({ data });
-  }
+    const { data, error } = await getWorkflow(ctx.supabase, ctx.organizationId, id);
+    
+    if (error) {
+      return ok({ error: error.message }, { status: 404 });
+    }
 
-  const { data, error } = await getWorkflow(auth.supabase, auth.organizationId, params.id);
-  
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 404 });
+    return ok({ data });
+  } catch (err) {
+    return handleApiError(err);
   }
-
-  return NextResponse.json({ data });
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const auth = await requireAuth();
-  if (auth.error) return auth.error;
+  try {
+    const ctx = await requireAuth();
+    const { id } = await params;
+    const body = await request.json();
 
-  const body = await request.json();
+    const { data, error } = await updateWorkflow(
+      ctx.supabase,
+      ctx.organizationId,
+      id,
+      body
+    );
 
-  const { data, error } = await updateWorkflow(
-    auth.supabase,
-    auth.organizationId,
-    params.id,
-    body
-  );
+    if (error) {
+      const errorMessage = typeof error === 'string' ? error : (error as Error).message;
+      return ok({ error: errorMessage }, { status: 400 });
+    }
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return ok({ data });
+  } catch (err) {
+    return handleApiError(err);
   }
-
-  return NextResponse.json({ data });
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const auth = await requireAuth();
-  if (auth.error) return auth.error;
+  try {
+    const ctx = await requireAuth();
+    const { id } = await params;
+    const { error } = await deleteWorkflow(ctx.supabase, ctx.organizationId, id);
 
-  const { error } = await deleteWorkflow(auth.supabase, auth.organizationId, params.id);
+    if (error) {
+      const errorMessage = typeof error === 'string' ? error : (error as Error).message;
+      return ok({ error: errorMessage }, { status: 400 });
+    }
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return ok({ success: true });
+  } catch (err) {
+    return handleApiError(err);
   }
-
-  return NextResponse.json({ success: true });
 }
 
 // Separate endpoint for triggering workflows
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const auth = await requireAuth();
-  if (auth.error) return auth.error;
+  try {
+    const ctx = await requireAuth();
+    const { id } = await params;
+    const body = await request.json();
+    const { action, triggerData } = body;
 
-  const body = await request.json();
-  const { action, triggerData } = body;
+    if (action === 'trigger') {
+      const { data, error } = await triggerWorkflow(
+        ctx.supabase,
+        ctx.organizationId,
+        id,
+        triggerData || {}
+      );
 
-  if (action === 'trigger') {
-    const { data, error } = await triggerWorkflow(
-      auth.supabase,
-      auth.organizationId,
-      params.id,
-      triggerData || {}
-    );
+      if (error) {
+        return ok({ error: error.message }, { status: 400 });
+      }
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      return ok({ data });
     }
 
-    return NextResponse.json({ data });
+    return ok({ error: 'Invalid action' }, { status: 400 });
+  } catch (err) {
+    return handleApiError(err);
   }
-
-  return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
 }

@@ -1,43 +1,47 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/auth/require-auth';
+import { requireAuth, handleApiError, ok } from '@/lib/api';
 
 // Basic template CRUD - can be enhanced with full service layer
 export async function GET(request: NextRequest) {
-  const auth = await requireAuth();
-  if (auth.error) return auth.error;
+  try {
+    const ctx = await requireAuth();
+    const { data, error } = await ctx.supabase
+      .from('email_templates_enhanced')
+      .select('*')
+      .eq('organization_id', ctx.organizationId)
+      .order('created_at', { ascending: false });
 
-  const { data, error } = await auth.supabase
-    .from('email_templates_enhanced')
-    .select('*')
-    .eq('organization_id', auth.organizationId)
-    .order('created_at', { ascending: false });
+    if (error) {
+      return ok({ error: error.message }, { status: 400 });
+    }
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return ok({ data: data ?? [] });
+  } catch (err) {
+    return handleApiError(err);
   }
-
-  return NextResponse.json({ data: data ?? [] });
 }
 
 export async function POST(request: NextRequest) {
-  const auth = await requireAuth();
-  if (auth.error) return auth.error;
+  try {
+    const ctx = await requireAuth();
+    const body = await request.json();
 
-  const body = await request.json();
+    const { data, error } = await ctx.supabase
+      .from('email_templates_enhanced')
+      .insert({
+        ...body,
+        organization_id: ctx.organizationId,
+        created_by: ctx.userId
+      })
+      .select()
+      .single();
 
-  const { data, error } = await auth.supabase
-    .from('email_templates_enhanced')
-    .insert({
-      ...body,
-      organization_id: auth.organizationId,
-      created_by: auth.user.id
-    })
-    .select()
-    .single();
+    if (error) {
+      return ok({ error: error.message }, { status: 400 });
+    }
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return ok({ data });
+  } catch (err) {
+    return handleApiError(err);
   }
-
-  return NextResponse.json({ data });
 }
