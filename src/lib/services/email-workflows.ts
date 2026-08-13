@@ -69,7 +69,11 @@ export async function createWorkflow(
     .select()
     .single();
 
-  return { data, error };
+  if (error) {
+    return { data: null, error: new Error(error.message) };
+  }
+
+  return { data, error: undefined };
 }
 
 export async function getWorkflow(supabase: SupabaseClient, organizationId: string, workflowId: string) {
@@ -80,7 +84,11 @@ export async function getWorkflow(supabase: SupabaseClient, organizationId: stri
     .eq('id', workflowId)
     .single();
 
-  return { data, error };
+  if (error) {
+    return { data: null, error: new Error(error.message) };
+  }
+
+  return { data, error: undefined };
 }
 
 export async function listWorkflows(supabase: SupabaseClient, organizationId: string, activeOnly = false) {
@@ -95,7 +103,12 @@ export async function listWorkflows(supabase: SupabaseClient, organizationId: st
   }
 
   const { data, error } = await query;
-  return { data: data ?? [], error };
+  
+  if (error) {
+    return { data: [], error: new Error(error.message) };
+  }
+  
+  return { data: data ?? [], error: undefined };
 }
 
 export async function updateWorkflow(
@@ -112,7 +125,11 @@ export async function updateWorkflow(
     .select()
     .single();
 
-  return { data, error };
+  if (error) {
+    return { data: null, error: new Error(error.message) };
+  }
+
+  return { data, error: undefined };
 }
 
 export async function deleteWorkflow(supabase: SupabaseClient, organizationId: string, workflowId: string) {
@@ -122,7 +139,11 @@ export async function deleteWorkflow(supabase: SupabaseClient, organizationId: s
     .eq('organization_id', organizationId)
     .eq('id', workflowId);
 
-  return { error };
+  if (error) {
+    return { error: new Error(error.message) };
+  }
+
+  return { error: undefined };
 }
 
 // Workflow Node operations
@@ -140,7 +161,11 @@ export async function createWorkflowNode(
     .select()
     .single();
 
-  return { data, error };
+  if (error) {
+    return { data: null, error: new Error(error.message) };
+  }
+
+  return { data, error: undefined };
 }
 
 export async function getWorkflowNodes(supabase: SupabaseClient, workflowId: string) {
@@ -150,7 +175,11 @@ export async function getWorkflowNodes(supabase: SupabaseClient, workflowId: str
     .eq('workflow_id', workflowId)
     .order('position_y');
 
-  return { data: data ?? [], error };
+  if (error) {
+    return { data: [], error: new Error(error.message) };
+  }
+
+  return { data: data ?? [], error: undefined };
 }
 
 export async function updateWorkflowNode(
@@ -165,7 +194,11 @@ export async function updateWorkflowNode(
     .select()
     .single();
 
-  return { data, error };
+  if (error) {
+    return { data: null, error: new Error(error.message) };
+  }
+
+  return { data, error: undefined };
 }
 
 export async function deleteWorkflowNode(supabase: SupabaseClient, nodeId: string) {
@@ -174,7 +207,11 @@ export async function deleteWorkflowNode(supabase: SupabaseClient, nodeId: strin
     .delete()
     .eq('id', nodeId);
 
-  return { error };
+  if (error) {
+    return { error: new Error(error.message) };
+  }
+
+  return { error: undefined };
 }
 
 // Workflow Edge operations
@@ -192,7 +229,11 @@ export async function createWorkflowEdge(
     .select()
     .single();
 
-  return { data, error };
+  if (error) {
+    return { data: null, error: new Error(error.message) };
+  }
+
+  return { data, error: undefined };
 }
 
 export async function getWorkflowEdges(supabase: SupabaseClient, workflowId: string) {
@@ -201,7 +242,11 @@ export async function getWorkflowEdges(supabase: SupabaseClient, workflowId: str
     .select('*')
     .eq('workflow_id', workflowId);
 
-  return { data: data ?? [], error };
+  if (error) {
+    return { data: [], error: new Error(error.message) };
+  }
+
+  return { data: data ?? [], error: undefined };
 }
 
 export async function deleteWorkflowEdge(supabase: SupabaseClient, edgeId: string) {
@@ -210,7 +255,11 @@ export async function deleteWorkflowEdge(supabase: SupabaseClient, edgeId: strin
     .delete()
     .eq('id', edgeId);
 
-  return { error };
+  if (error) {
+    return { error: new Error(error.message) };
+  }
+
+  return { error: undefined };
 }
 
 // Get complete workflow with nodes and edges
@@ -230,7 +279,7 @@ export async function getWorkflowWithNodes(supabase: SupabaseClient, organizatio
       nodes,
       edges
     },
-    error: null
+    error: undefined
   };
 }
 
@@ -249,8 +298,8 @@ export async function triggerWorkflow(
     .eq('trigger_type', triggerType)
     .eq('is_active', true);
 
-  if (error) return { error };
-  if (!workflows || workflows.length === 0) return { data: [], error: null };
+  if (error) return { error: new Error(error.message) };
+  if (!workflows || workflows.length === 0) return { data: [], error: undefined };
 
   const results = [];
   for (const workflow of workflows) {
@@ -288,7 +337,7 @@ export async function triggerWorkflow(
     results.push({ workflow_id: workflow.id, run_id: run.id });
   }
 
-  return { data: results, error: null };
+  return { data: results, error: undefined };
 }
 
 async function executeWorkflow(

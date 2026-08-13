@@ -116,7 +116,11 @@ export async function createDripCampaign(
     .select()
     .single();
 
-  return { data, error };
+  if (error) {
+    return { data: null, error: new Error(error.message) };
+  }
+
+  return { data, error: undefined };
 }
 
 export async function getDripCampaign(supabase: SupabaseClient, organizationId: string, campaignId: string) {
@@ -127,7 +131,11 @@ export async function getDripCampaign(supabase: SupabaseClient, organizationId: 
     .eq('id', campaignId)
     .single();
 
-  return { data, error };
+  if (error) {
+    return { data: null, error: new Error(error.message) };
+  }
+
+  return { data, error: undefined };
 }
 
 export async function listDripCampaigns(supabase: SupabaseClient, organizationId: string, activeOnly = false) {
@@ -142,7 +150,12 @@ export async function listDripCampaigns(supabase: SupabaseClient, organizationId
   }
 
   const { data, error } = await query;
-  return { data: data ?? [], error };
+  
+  if (error) {
+    return { data: [], error: new Error(error.message) };
+  }
+  
+  return { data: data ?? [], error: undefined };
 }
 
 export async function addContactToDripCampaign(
@@ -163,7 +176,11 @@ export async function addContactToDripCampaign(
     .select()
     .single();
 
-  return { data, error };
+  if (error) {
+    return { data: null, error: new Error(error.message) };
+  }
+
+  return { data, error: undefined };
 }
 
 export async function processDripCampaignStep(
@@ -466,7 +483,11 @@ export async function createABTestCampaign(
     .select()
     .single();
 
-  return { data, error };
+  if (error) {
+    return { data: null, error: new Error(error.message) };
+  }
+
+  return { data, error: undefined };
 }
 
 export async function assignVariant(
@@ -539,7 +560,11 @@ export async function trackABTestMetric(
     .select()
     .single();
 
-  return { data, error };
+  if (error) {
+    return { data: null, error: new Error(error.message) };
+  }
+
+  return { data, error: undefined };
 }
 
 export async function calculateABTestWinner(
@@ -634,12 +659,16 @@ export async function createSegmentationRule(
     .select()
     .single();
 
-  if (!error && data) {
+  if (error) {
+    return { data: null, error: new Error(error.message) };
+  }
+
+  if (data) {
     // Calculate initial segment membership
     await refreshSegmentMembership(supabase, data.id);
   }
 
-  return { data, error };
+  return { data, error: undefined };
 }
 
 export async function refreshSegmentMembership(supabase: SupabaseClient, segmentId: string) {
