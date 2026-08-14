@@ -178,3 +178,7 @@
 *.lz
 *.lzma
 *.iso
+
+.vercel
+.env*
+!.env.example
