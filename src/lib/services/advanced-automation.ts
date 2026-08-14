@@ -589,7 +589,7 @@ export async function trackABTestMetric(
 export async function calculateABTestWinner(
   supabase: SupabaseClient,
   testId: string
-): Promise<{ winningVariantId: string | null; statisticalSignificance: number }> {
+): Promise<{ winningVariantId: string | null; statisticalSignificance: number; error?: Error }> {
   const { data: test } = await supabase
     .from('ab_test_campaigns')
     .select('*')

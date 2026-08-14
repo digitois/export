@@ -44,10 +44,14 @@ export async function POST(
     }
 
     if (action === 'calculate_winner') {
-      const { winningVariantId, statisticalSignificance } = await calculateABTestWinner(
+      const { winningVariantId, statisticalSignificance, error } = await calculateABTestWinner(
         ctx.supabase,
         id
       );
+
+      if (error) {
+        return ok({ error: error.message }, { status: 400 });
+      }
 
       return ok({ 
         data: { 
