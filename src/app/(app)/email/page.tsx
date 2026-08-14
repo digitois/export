@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { CsvImportModal } from '@/components/email/csv-import-modal';
 import { formatDate } from '@/lib/utils';
 
 interface List { id: string; name: string; description?: string | null; contact_count?: number; }
@@ -477,20 +478,11 @@ const newActions: NewAction[] = [
                     </Button>
                   </div>
                   {showImportContacts && (
-                    <form onSubmit={addContacts} className="space-y-2 mb-4">
-                      <Select value={selectedList} onValueChange={setSelectedList}>
-                        <SelectTrigger className="w-[200px]"><SelectValue placeholder="Select a list (optional)" /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="">All Lists (no list)</SelectItem>
-                          {lists.map((l) => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                      <Textarea name="emails" rows={4} placeholder={'buyer@example.com\nanother@buyer.com'} />
-                      <div className="flex justify-end gap-2">
-                        <Button type="button" variant="outline" size="sm" onClick={() => setShowImportContacts(false)}><X className="mr-1 h-3.5 w-3.5" /> Cancel</Button>
-                        <Button type="submit" size="sm"><Plus className="mr-1 h-3.5 w-3.5" /> Add Contacts</Button>
-                      </div>
-                    </form>
+                    <CsvImportModal
+                      open={showImportContacts}
+                      onOpenChange={setShowImportContacts}
+                      onImported={() => { setContacts([]); load(); }}
+                    />
                   )}
                   <div className="divide-y divide-border rounded-lg border max-h-80 overflow-y-auto">
                     {contacts.length ? contacts.map((c) => (

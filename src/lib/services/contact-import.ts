@@ -263,7 +263,7 @@ export async function processImport(
       await supabase
         .from('email_contacts')
         .upsert({
-          organization_id: jobId, // This would be organizationId - need to fix
+          organization_id: organizationId,
           email: contact.email,
           first_name: contact.first_name ?? null,
           last_name: contact.last_name ?? null,

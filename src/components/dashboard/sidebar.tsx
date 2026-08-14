@@ -83,6 +83,7 @@ const NAV: NavSection[] = [
       { href: '/blog', label: 'Blog', icon: Newspaper },
       { href: '/email', label: 'Email Marketing', icon: Send },
       { href: '/email/sequences', label: 'Sequences', icon: Workflow },
+      { href: '/email/templates', label: 'Templates', icon: FileText },
       { href: '/email/verification', label: 'Email Verification', icon: ShieldCheck },
       { href: '/email/sender-accounts', label: 'Sender Accounts', icon: Mail },
       { href: '/email/triggers', label: 'Triggers', icon: Zap },

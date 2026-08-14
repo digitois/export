@@ -30,3 +30,22 @@ export async function POST(request: Request) {
     return handleApiError(err);
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const ctx = await requireAuth();
+    const id = new URL(request.url).searchParams.get('id');
+    if (!id) return ok({ error: 'Template id required' }, { status: 400 });
+
+    const { error } = await ctx.supabase
+      .from('email_templates')
+      .delete()
+      .eq('organization_id', ctx.organizationId)
+      .eq('id', id);
+
+    if (error) return ok({ error: error.message }, { status: 400 });
+    return ok({ data: true });
+  } catch (err) {
+    return handleApiError(err);
+  }
+}
