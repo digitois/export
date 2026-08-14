@@ -208,7 +208,7 @@ export async function processDripCampaignStep(
       .from('drip_recipients')
       .update({ status: 'completed', completed_at: new Date().toISOString() })
       .eq('id', recipientId);
-    return { data: { status: 'completed' } };
+    return { data: { status: 'completed' }, error: undefined };
   }
 
   const currentStep = schedule[recipient.current_step];
@@ -216,7 +216,7 @@ export async function processDripCampaignStep(
   const timeSinceStart = Date.now() - new Date(recipient.started_at).getTime();
 
   if (timeSinceStart < stepDelay) {
-    return { data: { status: 'waiting', next_step_at: new Date(new Date(recipient.started_at).getTime() + stepDelay) } };
+    return { data: { status: 'waiting', next_step_at: new Date(new Date(recipient.started_at).getTime() + stepDelay) }, error: undefined };
   }
 
   // Send email for current step
@@ -262,10 +262,10 @@ export async function processDripCampaignStep(
       .update({ total_sent: campaign.total_sent + 1 })
       .eq('id', campaign.id);
 
-    return { data: { status: 'sent', next_step: nextStep, messageId: result.messageId } };
+    return { data: { status: 'sent', next_step: nextStep, messageId: result.messageId }, error: undefined };
   }
 
-  return { error: new Error('Failed to send email') };
+  return { error: new Error('Failed to send email'), data: null };
 }
 
 // ============================================
@@ -291,7 +291,7 @@ export async function evaluateBranching(
   supabase: SupabaseClient,
   nodeConfig: Record<string, unknown>,
   triggerData: Record<string, unknown>
-): Promise<{ matchedPath: string | null; error?: string }> {
+): Promise<{ matchedPath: string | null; error?: Error }> {
   const branches = nodeConfig.branches as Array<{
     id: string;
     conditions: Array<{ field: string; operator: string; value: unknown }>;
@@ -307,7 +307,7 @@ export async function evaluateBranching(
 
   // Default path if no conditions match
   const defaultPath = nodeConfig.default_path as string | undefined;
-  return { matchedPath: defaultPath || null };
+  return { matchedPath: defaultPath || null, error: undefined };
 }
 
 // ============================================
@@ -417,7 +417,11 @@ export async function createWorkflowGoal(
     .select()
     .single();
 
-  return { data, error };
+  if (error) {
+    return { data: null, error: new Error(error.message) };
+  }
+
+  return { data, error: undefined };
 }
 
 export async function completeWorkflowGoal(
@@ -440,7 +444,11 @@ export async function completeWorkflowGoal(
     .select()
     .single();
 
-  return { data, error };
+  if (error) {
+    return { data: null, error: new Error(error.message) };
+  }
+
+  return { data, error: undefined };
 }
 
 export async function checkGoalCompletion(
@@ -548,7 +556,7 @@ export async function assignVariant(
       .eq('id', testId);
   }
 
-  return { variantId: selectedVariantId };
+  return { variantId: selectedVariantId, error: undefined };
 }
 
 export async function trackABTestMetric(
@@ -589,7 +597,7 @@ export async function calculateABTestWinner(
     .single();
 
   if (!test) {
-    return { winningVariantId: null, statisticalSignificance: 0 };
+    return { winningVariantId: null, statisticalSignificance: 0, error: new Error('Test not found') };
   }
 
   const variants = test.variants as Array<{ id: string }>;
@@ -646,7 +654,7 @@ export async function calculateABTestWinner(
       .eq('id', testId);
   }
 
-  return { winningVariantId: bestVariantId, statisticalSignificance };
+  return { winningVariantId: bestVariantId, statisticalSignificance, error: undefined };
 }
 
 // ============================================
@@ -754,7 +762,11 @@ export async function getSegmentMembers(supabase: SupabaseClient, segmentId: str
     .eq('segment_id', segmentId)
     .eq('is_current', true);
 
-  return { data: data ?? [], error };
+  if (error) {
+    return { data: [], error: new Error(error.message) };
+  }
+
+  return { data: data ?? [], error: undefined };
 }
 
 // ============================================
@@ -777,14 +789,18 @@ export async function createSplitPath(
     .select()
     .single();
 
-  return { data, error };
+  if (error) {
+    return { data: null, error: new Error(error.message) };
+  }
+
+  return { data, error: undefined };
 }
 
 export async function assignSplitPath(
   supabase: SupabaseClient,
   splitPathId: string,
   runId: string
-): Promise<{ assignedPathId: string | null; error?: string }> {
+): Promise<{ assignedPathId: string | null; error?: Error }> {
   const { data: splitPath } = await supabase
     .from('split_paths')
     .select('*')
@@ -792,7 +808,7 @@ export async function assignSplitPath(
     .single();
 
   if (!splitPath) {
-    return { assignedPathId: null, error: 'Split path not found' };
+    return { assignedPathId: null, error: new Error('Split path not found') };
   }
 
   const paths = splitPath.paths as Array<{ id: string; percentage: number; target_node_id: string }>;
@@ -824,7 +840,7 @@ export async function assignSplitPath(
       });
   }
 
-  return { assignedPathId: selectedPathId };
+  return { assignedPathId: selectedPathId, error: undefined };
 }
 
 // ============================================
@@ -841,7 +857,8 @@ export async function evaluateWaitUntilCondition(
       const targetDate = new Date(waitConfig.target_date as string);
       return {
         shouldProceed: new Date() >= targetDate,
-        nextCheckAt: targetDate
+        nextCheckAt: targetDate,
+        error: undefined
       };
 
     case 'day_of_week':
@@ -849,7 +866,8 @@ export async function evaluateWaitUntilCondition(
       const currentDay = new Date().getDay();
       return {
         shouldProceed: currentDay === targetDay,
-        nextCheckAt: getNextDayOfWeek(targetDay)
+        nextCheckAt: getNextDayOfWeek(targetDay),
+        error: undefined
       };
 
     case 'time':
@@ -861,15 +879,16 @@ export async function evaluateWaitUntilCondition(
 
       return {
         shouldProceed: currentTime >= targetDateTime,
-        nextCheckAt: targetDateTime > currentTime ? targetDateTime : getNextDayTime(targetHours, targetMinutes)
+        nextCheckAt: targetDateTime > currentTime ? targetDateTime : getNextDayTime(targetHours, targetMinutes),
+        error: undefined
       };
 
     case 'event_occurs':
       // This would check if a specific event has occurred
-      return { shouldProceed: false }; // Would be implemented with event tracking
+      return { shouldProceed: false, error: new Error('Event tracking not implemented') };
 
     default:
-      return { shouldProceed: true };
+      return { shouldProceed: true, error: undefined };
   }
 }
 
