@@ -30,9 +30,9 @@ export const getProfile = cache(async () => {
 });
 
 export const getOrgContext = cache(
-  async (): Promise<{ context: OrgContext | null; error: string | null }> => {
+  async (): Promise<{ context: OrgContext | null; error: Error | null }> => {
     const user = await getCurrentUser();
-    if (!user) return { context: null, error: 'UNAUTHENTICATED' };
+    if (!user) return { context: null, error: new Error('UNAUTHENTICATED') };
 
     const supabase = await createSupabaseClient();
     const { data: memberships } = await supabase
@@ -43,7 +43,7 @@ export const getOrgContext = cache(
       .limit(1);
 
     const membership = memberships?.[0];
-    if (!membership) return { context: null, error: 'NO_ORGANIZATION' };
+    if (!membership) return { context: null, error: new Error('NO_ORGANIZATION') };
 
     const org = membership.organizations as unknown as
       | { id: string; name: string; plan_id: string | null; plans: { code: string } | null }

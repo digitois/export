@@ -109,8 +109,8 @@ export async function sendCampaign(supabase: SupabaseClient, organizationId: str
     .eq('id', id)
     .single();
 
-  if (!campaign) return { error: 'Campaign not found' };
-  if (campaign.status === 'sending') return { error: 'Campaign is already sending' };
+  if (!campaign) return { error: new Error('Campaign not found') };
+  if (campaign.status === 'sending') return { error: new Error('Campaign is already sending') };
 
   await supabase
     .from('email_campaigns')
