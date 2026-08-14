@@ -11,6 +11,12 @@ export async function POST(request: Request) {
     const parsed = blogGenerateSchema.parse(body);
 
     const org = await getOrgContext();
+    if (org.error) {
+      return ok({ error: org.error.message }, { status: 400 });
+    }
+    if (!org.context) {
+      return ok({ error: 'Organization context not found' }, { status: 400 });
+    }
     const company = await getCompanyProfile(ctx.supabase, ctx.organizationId);
 
     const content = await generateBlogContent({

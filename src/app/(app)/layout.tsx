@@ -11,7 +11,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const [user, profile, org] = await Promise.all([getCurrentUser(), getProfile(), getOrgContext()]);
 
   if (!user) redirect('/login');
-  if (!org.context) redirect('/onboarding');
+  if (org.error || !org.context) redirect('/onboarding');
 
   return (
     <div className="flex min-h-screen">
