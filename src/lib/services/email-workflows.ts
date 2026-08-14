@@ -1,6 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { sendEmail } from '@/lib/email';
 
+// Generic result type for node execution
+type NodeResult<T = unknown> = { data: T; error?: never } | { data?: never; error: Error };
+
 // Types for enhanced email workflow system
 export interface WorkflowNode {
   id: string;
@@ -413,7 +416,7 @@ async function executeNode(
   node: WorkflowNode,
   triggerData: Record<string, unknown>,
   runId: string
-) {
+): Promise<NodeResult> {
   // Log step start
   const { data: stepLog } = await supabase
     .from('email_workflow_step_logs')
@@ -476,7 +479,7 @@ async function executeNode(
         .eq('id', stepLog.id);
     }
 
-    return { error: errorMessage };
+    return { error: new Error(errorMessage) };
   }
 }
 
@@ -485,7 +488,7 @@ async function executeActionNode(
   organizationId: string,
   node: WorkflowNode,
   triggerData: Record<string, unknown>
-) {
+): Promise<NodeResult> {
   if (!node.action_type) {
     return { error: new Error('Action node missing action_type') };
   }
@@ -511,7 +514,7 @@ async function executeSendEmail(
   organizationId: string,
   config: Record<string, unknown>,
   triggerData: Record<string, unknown>
-) {
+): Promise<NodeResult<{ messageId: string }>> {
   const templateId = config.template_id as string;
   const to = config.to as string || triggerData.email as string;
   
@@ -566,7 +569,7 @@ async function executeAddToList(
   organizationId: string,
   config: Record<string, unknown>,
   triggerData: Record<string, unknown>
-) {
+): Promise<NodeResult<{ addedToList: string }>> {
   const listId = config.list_id as string;
   const email = triggerData.email as string;
   const name = triggerData.name as string;
@@ -599,7 +602,7 @@ async function executeUpdateLead(
   organizationId: string,
   config: Record<string, unknown>,
   triggerData: Record<string, unknown>
-) {
+): Promise<NodeResult<{ updatedLead: string }>> {
   const leadId = triggerData.lead_id as string;
   const updates = config.updates as Record<string, unknown>;
 
@@ -625,7 +628,7 @@ async function executeCreateTask(
   organizationId: string,
   config: Record<string, unknown>,
   triggerData: Record<string, unknown>
-) {
+): Promise<NodeResult<{ taskCreated: boolean }>> {
   // Placeholder for task creation logic
   // This would integrate with a tasks system
   return { data: { taskCreated: true } };
@@ -636,7 +639,7 @@ async function executeNotifyTeam(
   organizationId: string,
   config: Record<string, unknown>,
   triggerData: Record<string, unknown>
-) {
+): Promise<NodeResult<{ teamNotified: boolean }>> {
   // Placeholder for team notification logic
   // This would integrate with notification system
   return { data: { teamNotified: true } };
@@ -645,7 +648,7 @@ async function executeNotifyTeam(
 async function executeConditionNode(
   node: WorkflowNode,
   triggerData: Record<string, unknown>
-) {
+): Promise<NodeResult<{ conditionResult: boolean }>> {
   // Evaluate condition based on node config
   const condition = node.config.condition as Record<string, unknown>;
   const result = evaluateCondition(condition, triggerData);
@@ -653,7 +656,7 @@ async function executeConditionNode(
   return { data: { conditionResult: result } };
 }
 
-async function executeDelayNode(node: WorkflowNode) {
+async function executeDelayNode(node: WorkflowNode): Promise<NodeResult<{ delayed: number }>> {
   const delayMs = (node.config.delay as number) * 1000 || 5000;
   await new Promise(resolve => setTimeout(resolve, delayMs));
   
@@ -664,7 +667,7 @@ async function executeIntegrationNode(
   supabase: SupabaseClient,
   node: WorkflowNode,
   triggerData: Record<string, unknown>
-) {
+): Promise<NodeResult<{ webhookExecuted: boolean; status: number }>> {
   // Placeholder for external integrations
   const integrationType = node.config.integration_type as string;
   
@@ -679,7 +682,7 @@ async function executeIntegrationNode(
 async function executeWebhook(
   config: Record<string, unknown>,
   triggerData: Record<string, unknown>
-) {
+): Promise<NodeResult<{ webhookExecuted: boolean; status: number }>> {
   const url = config.url as string;
   const method = (config.method as string) || 'POST';
   
