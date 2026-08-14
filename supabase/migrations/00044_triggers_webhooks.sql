@@ -29,6 +29,38 @@ do $$ begin
   end if;
 end $$;
 
+-- Webhook endpoints (for inbound/outbound)
+create table if not exists public.webhook_endpoints (
+  id uuid primary key default gen_random_uuid(),
+  organization_id uuid not null references public.organizations (id) on delete cascade,
+  name text not null,
+  url text not null,
+  secret text, -- HMAC secret for signing
+  events text[] not null default '{}', -- Event types to listen for
+  is_active boolean not null default true,
+  retry_count int not null default 3,
+  timeout_ms int not null default 10000,
+  created_by uuid references public.profiles (id),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- Webhook deliveries (outbound)
+create table if not exists public.webhook_deliveries (
+  id uuid primary key default gen_random_uuid(),
+  webhook_endpoint_id uuid not null references public.webhook_endpoints (id) on delete cascade,
+  event_type text not null,
+  payload jsonb not null,
+  status text not null default 'pending', -- 'pending', 'delivered', 'failed', 'retrying'
+  attempt int not null default 0,
+  response_status int,
+  response_body text,
+  error text,
+  next_retry_at timestamptz,
+  created_at timestamptz not null default now(),
+  delivered_at timestamptz
+);
+
 -- Triggers table
 create table if not exists public.triggers (
   id uuid primary key default gen_random_uuid(),
@@ -64,38 +96,6 @@ create table if not exists public.trigger_evaluations (
   error text,
   event_data jsonb default '{}'::jsonb,
   created_at timestamptz not null default now()
-);
-
--- Webhook endpoints (for inbound/outbound)
-create table if not exists public.webhook_endpoints (
-  id uuid primary key default gen_random_uuid(),
-  organization_id uuid not null references public.organizations (id) on delete cascade,
-  name text not null,
-  url text not null,
-  secret text, -- HMAC secret for signing
-  events text[] not null default '{}', -- Event types to listen for
-  is_active boolean not null default true,
-  retry_count int not null default 3,
-  timeout_ms int not null default 10000,
-  created_by uuid references public.profiles (id),
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
--- Webhook deliveries (outbound)
-create table if not exists public.webhook_deliveries (
-  id uuid primary key default gen_random_uuid(),
-  webhook_endpoint_id uuid not null references public.webhook_endpoints (id) on delete cascade,
-  event_type text not null,
-  payload jsonb not null,
-  status text not null default 'pending', -- 'pending', 'delivered', 'failed', 'retrying'
-  attempt int not null default 0,
-  response_status int,
-  response_body text,
-  error text,
-  next_retry_at timestamptz,
-  created_at timestamptz not null default now(),
-  delivered_at timestamptz
 );
 
 -- Indexes
@@ -323,8 +323,8 @@ begin
       returning id into v_enrollment_id;
 
       -- Log evaluation
-      insert into public.trigger_evaluations (trigger_id, contact_id, lead_id, event_type, matched, enrolled, enrolled)
-      values (v_trigger.id, p_contact_id, p_lead_id, p_event_type::text, true, true, v_enrollment_id);
+      insert into public.trigger_evaluations (trigger_id, contact_id, lead_id, event_type, matched, enrolled)
+      values (v_trigger.id, p_contact_id, p_lead_id, p_event_type::text, true, true);
 
       -- Update trigger counters
       update public.triggers

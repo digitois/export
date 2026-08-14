@@ -18,18 +18,21 @@ do $$ begin
   end if;
 end $$;
 
--- Email contacts: add verification fields
+-- Email contacts: add verification fields + contact detail columns
 alter table public.email_contacts
   add column if not exists verification_status public.verification_status default 'unknown',
   add column if not exists verification_provider public.verification_provider,
   add column if not exists verification_checked_at timestamptz,
-  add column if not exists verification_data jsonb default '{}'::jsonb;
+  add column if not exists verification_data jsonb default '{}'::jsonb,
+  add column if not exists first_name text,
+  add column if not exists last_name text,
+  add column if not exists custom_fields jsonb default '{}'::jsonb;
 
 -- Verification jobs (bulk)
 create table if not exists public.verification_jobs (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations (id) on delete cascade,
-  list_id uuid references public.email_lists (id) on delete set null,
+  list_id uuid references public.contact_lists (id) on delete set null,
   provider public.verification_provider not null default 'local',
   state text not null default 'pending', -- 'pending', 'running', 'completed', 'failed', 'cancelled'
   progress int not null default 0,

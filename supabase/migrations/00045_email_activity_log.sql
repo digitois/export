@@ -78,7 +78,7 @@ create table if not exists public.email_unsubscribes (
   organization_id uuid not null references public.organizations (id) on delete cascade,
   contact_id uuid references public.email_contacts (id) on delete set null,
   email text not null,
-  list_id uuid references public.email_lists (id) on delete set null,
+  list_id uuid references public.contact_lists (id) on delete set null,
   campaign_id uuid,
   sequence_id uuid references public.sequences (id) on delete set null,
   source text,

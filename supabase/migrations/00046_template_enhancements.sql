@@ -11,6 +11,7 @@ alter table public.email_templates
   add column if not exists is_variant boolean not null default false,
   add column if not exists body_json jsonb, -- Tiptap ProseMirror JSON
   add column if not exists subject text,
+  add column if not exists subject_text text,
   add column if not exists preview_text text,
   add column if not exists category text check (category in ('welcome', 'follow_up', 'promotion', 'announcement', 'transactional', 'newsletter')),
   add column if not exists thumbnail_url text,

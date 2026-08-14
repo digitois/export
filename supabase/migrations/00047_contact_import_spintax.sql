@@ -8,7 +8,7 @@
 create table if not exists public.contact_import_jobs (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations (id) on delete cascade,
-  list_id uuid references public.email_lists (id) on delete set null,
+  list_id uuid references public.contact_lists (id) on delete set null,
   filename text not null,
   total_rows int not null default 0,
   processed_rows int not null default 0,
