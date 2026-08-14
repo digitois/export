@@ -7,7 +7,8 @@ import {
   Folder, Newspaper, Sparkles, Send, BarChart3, Globe, Building2,
   UserCog, Settings, SearchCode, Ship, Calculator, PackageCheck, Award,
   Wallet, Warehouse, Truck, Package2, Target, FilePen, Bell, Briefcase,
-  CalendarCheck, CalendarDays, Banknote, CreditCard, type LucideIcon
+  CalendarCheck, CalendarDays, Banknote, CreditCard, Workflow, ShieldCheck,
+  Mail, Zap, Webhook, MailOpen, type LucideIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Logo } from '@/components/logo';
@@ -81,6 +82,12 @@ const NAV: NavSection[] = [
     items: [
       { href: '/blog', label: 'Blog', icon: Newspaper },
       { href: '/email', label: 'Email Marketing', icon: Send },
+      { href: '/email/sequences', label: 'Sequences', icon: Workflow },
+      { href: '/email/verification', label: 'Email Verification', icon: ShieldCheck },
+      { href: '/email/sender-accounts', label: 'Sender Accounts', icon: Mail },
+      { href: '/email/triggers', label: 'Triggers', icon: Zap },
+      { href: '/email/webhooks', label: 'Webhooks', icon: Webhook },
+      { href: '/email/log', label: 'Email Log', icon: MailOpen },
       { href: '/website', label: 'Website', icon: Globe },
       { href: '/analytics', label: 'Analytics', icon: BarChart3 },
       { href: '/assistant', label: 'AI Assistant', icon: Sparkles }

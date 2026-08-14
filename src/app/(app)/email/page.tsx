@@ -3,7 +3,8 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import {
   Send, Users, Plus, Trash2, ListPlus, FilePlus2,
-  Workflow, Loader2, Zap, Play, Ban, ChevronDown, X
+  Workflow, Loader2, Zap, Play, Ban, ChevronDown, X,
+  ShieldCheck, Mail as MailIcon, MailOpen, Webhook, ArrowRight
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/lib/api-client';
@@ -266,6 +267,15 @@ const newActions: NewAction[] = [
             <StatCard title="Contacts" value={totalContacts} icon={Users} description="Across all lists" />
             <StatCard title="Recipients" value={recipients} icon={Send} description="Across all campaigns" />
             <StatCard title="Open Rate" value={openRate} icon={Users} description="Average opens" />
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <QuickLink href="/email/sequences" icon={Workflow} label="Sequences" description="Multi-step outreach" />
+            <QuickLink href="/email/verification" icon={ShieldCheck} label="Verification" description="Clean your lists" />
+            <QuickLink href="/email/sender-accounts" icon={MailIcon} label="Sender Accounts" description="SES & Gmail" />
+            <QuickLink href="/email/log" icon={MailOpen} label="Email Log" description="Delivery events" />
+            <QuickLink href="/email/triggers" icon={Zap} label="Triggers" description="Event automation" />
+            <QuickLink href="/email/webhooks" icon={Webhook} label="Webhooks" description="Integrations" />
           </div>
 
           <div className="grid gap-6 lg:grid-cols-2">
@@ -558,4 +568,19 @@ const TRIGGERS = [
 
 function formatTrigger(t: string) {
   return TRIGGERS.find((x) => x.value === t)?.label ?? t;
+}
+
+function QuickLink({ href, icon: Icon, label, description }: { href: string; icon: any; label: string; description: string }) {
+  return (
+    <a href={href} className="group flex items-center gap-3 rounded-lg border border-line bg-card p-4 transition-colors hover:border-primary/40">
+      <div className="rounded-md bg-accent-weak p-2 text-primary">
+        <Icon className="h-4 w-4" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium">{label}</p>
+        <p className="truncate text-xs text-muted-foreground">{description}</p>
+      </div>
+      <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+    </a>
+  );
 }
