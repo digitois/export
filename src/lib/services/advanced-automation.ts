@@ -337,12 +337,12 @@ export async function trackBehavioralEvent(
       occurred_at: data.occurred_at,
       event_type: event.event_type as string,
       event_data: event.event_data as Record<string, unknown>,
-      contact_id: event.contact_id,
-      lead_id: event.lead_id,
-      session_id: event.session_id,
-      ip_address: event.ip_address,
-      user_agent: event.user_agent,
-      referrer: event.referrer
+      contact_id: event.contact_id as string | undefined,
+      lead_id: event.lead_id as string | undefined,
+      session_id: event.session_id as string | undefined,
+      ip_address: event.ip_address as string | undefined,
+      user_agent: event.user_agent as string | undefined,
+      referrer: event.referrer as string | undefined
     };
     await triggerBehavioralWorkflows(supabase, organizationId, event.event_type as string, fullEvent);
   }
