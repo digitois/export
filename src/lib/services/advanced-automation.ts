@@ -301,7 +301,7 @@ export async function evaluateBranching(
   for (const branch of branches) {
     const matched = await evaluateConditionGroup(supabase, triggerData, branch.conditions, 'all');
     if (matched) {
-      return { matchedPath: branch.target_node_id };
+      return { matchedPath: branch.target_node_id, error: undefined };
     }
   }
 
@@ -455,7 +455,7 @@ export async function checkGoalCompletion(
   supabase: SupabaseClient,
   workflowId: string,
   runId: string
-): Promise<{ allRequiredGoalsCompleted: boolean; completedGoals: string[] }> {
+): Promise<{ allRequiredGoalsCompleted: boolean; completedGoals: string[]; error?: Error }> {
   const { data: goals } = await supabase
     .from('workflow_goals')
     .select('*')
@@ -463,7 +463,7 @@ export async function checkGoalCompletion(
     .eq('is_required', true);
 
   if (!goals || goals.length === 0) {
-    return { allRequiredGoalsCompleted: true, completedGoals: [] };
+    return { allRequiredGoalsCompleted: true, completedGoals: [], error: undefined };
   }
 
   const { data: completions } = await supabase
@@ -477,7 +477,8 @@ export async function checkGoalCompletion(
 
   return {
     allRequiredGoalsCompleted: allCompleted,
-    completedGoals: completedGoalIds
+    completedGoals: completedGoalIds,
+    error: undefined
   };
 }
 
@@ -849,7 +850,7 @@ export async function assignSplitPath(
 
 export async function evaluateWaitUntilCondition(
   waitConfig: Record<string, unknown>
-): Promise<{ shouldProceed: boolean; nextCheckAt?: Date }> {
+): Promise<{ shouldProceed: boolean; nextCheckAt?: Date; error?: Error }> {
   const conditionType = waitConfig.condition_type as string;
 
   switch (conditionType) {
