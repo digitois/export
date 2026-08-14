@@ -3,7 +3,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import {
   Send, Users, Plus, Trash2, ListPlus, FilePlus2,
-  Workflow, Loader2, Zap, Play, Ban
+  Workflow, Loader2, Zap, Play, Ban, ChevronDown, X
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/lib/api-client';
@@ -17,6 +17,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { formatDate } from '@/lib/utils';
 
 interface List { id: string; name: string; description?: string | null; contact_count?: number; }
@@ -29,13 +30,18 @@ interface Campaign {
 }
 interface Workflow {
   id: string; name: string; trigger_type: string; is_active: boolean;
-  run_count: number; template?: { name: string } | null; list?: { name: string } | null;
+  run_count: number; template?: { name: string } | null; list?: { name?: string } | null;
 }
 
-type ActiveTab = 'overview' | 'campaigns' | 'lists' | 'contacts' | 'templates' | 'workflows';
+type NewAction = 
+  | { type: 'campaign'; label: 'New Campaign'; href: '/email/campaigns/new' }
+  | { type: 'template'; label: 'New Template'; href: '/email/templates/new' }
+  | { type: 'sequence'; label: 'New Sequence'; href: '/email/sequences/new' }
+  | { type: 'workflow'; label: 'New Workflow'; onClick: () => void }
+  | { type: 'list'; label: 'New List'; onClick: () => void }
+  | { type: 'contact'; label: 'Import Contacts'; onClick: () => void };
 
 export default function EmailMarketingPage() {
-  const [tab, setTab] = useState<ActiveTab>('overview');
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [lists, setLists] = useState<List[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -48,6 +54,7 @@ export default function EmailMarketingPage() {
   const [showNewList, setShowNewList] = useState(false);
   const [showNewTemplate, setShowNewTemplate] = useState(false);
   const [showNewWorkflow, setShowNewWorkflow] = useState(false);
+  const [showImportContacts, setShowImportContacts] = useState(false);
 
   async function load() {
     try {
@@ -73,11 +80,10 @@ export default function EmailMarketingPage() {
   }, []);
 
   useEffect(() => {
-    if (tab !== 'contacts') return;
     api<{ data: Contact[] }>(`/api/email/contacts${selectedList ? `?listId=${selectedList}` : ''}`)
       .then((res) => setContacts(res.data))
       .catch(() => setContacts([]));
-  }, [tab, selectedList]);
+  }, [selectedList]);
 
   async function createList(e: FormEvent) {
     e.preventDefault();
@@ -181,10 +187,9 @@ export default function EmailMarketingPage() {
         body: emails.map((email) => ({ listId: selectedList || null, email }))
       });
       toast.success(`${emails.length} contacts added`);
-      if (tab === 'contacts') {
-        const res = await api<{ data: Contact[] }>(`/api/email/contacts${selectedList ? `?listId=${selectedList}` : ''}`);
-        setContacts(res.data);
-      }
+      const res = await api<{ data: Contact[] }>(`/api/email/contacts${selectedList ? `?listId=${selectedList}` : ''}`);
+      setContacts(res.data);
+      setShowImportContacts(false);
       load();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to add contacts');
@@ -203,20 +208,52 @@ export default function EmailMarketingPage() {
 
   const recipients = campaigns.reduce((acc, c) => acc + (c.recipients_count ?? 0), 0);
   const opens = campaigns.reduce((acc, c) => acc + (c.opened_count ?? 0), 0);
+  const totalContacts = lists.reduce((a, l) => a + (l.contact_count ?? 0), 0);
   const activeWorkflows = workflows.filter((w) => w.is_active).length;
   const openRate = recipients ? `${Math.round((opens / recipients) * 100)}%` : '0%';
 
+  interface NewAction {
+  type: string;
+  label: string;
+  href?: string;
+  onClick?: () => void;
+}
+
+const newActions: NewAction[] = [
+    { type: 'campaign', label: 'New Campaign', href: '/email/campaigns/new' },
+    { type: 'template', label: 'New Template', href: '/email/templates/new' },
+    { type: 'sequence', label: 'New Sequence', href: '/email/sequences/new' },
+    { type: 'workflow', label: 'New Workflow', onClick: () => setShowNewWorkflow(true) },
+    { type: 'list', label: 'New List', onClick: () => setShowNewList(true) },
+    { type: 'contact', label: 'Import Contacts', onClick: () => setShowImportContacts(true) },
+  ];
+
   return (
     <div className="space-y-6">
-      <PageHeader title="Email Marketing" description="Campaigns, audiences and automated follow-ups." />
-
-      <div className="flex flex-wrap gap-2">
-        {(['overview', 'campaigns', 'templates', 'lists', 'contacts', 'workflows'] as const).map((t) => (
-          <Badge key={t} variant={tab === t ? 'default' : 'outline'} className="cursor-pointer capitalize" onClick={() => setTab(t)}>
-            {t}
-          </Badge>
-        ))}
-      </div>
+      <PageHeader title="Email Marketing" description="Campaigns, audiences and automated follow-ups.">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="default" className="gap-2">
+              <Plus className="h-4 w-4" /> New
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <div className="px-2 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Create</div>
+            <DropdownMenuSeparator />
+            {newActions.map((action) => (
+              <DropdownMenuItem
+                key={action.type}
+                onSelect={action.onClick}
+                className={action.href ? 'cursor-pointer' : undefined}
+                onClick={() => { if (action.href) window.location.href = action.href; }}
+              >
+                {action.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </PageHeader>
 
       {loading ? (
         <div className="flex min-h-[30vh] items-center justify-center">
@@ -224,36 +261,21 @@ export default function EmailMarketingPage() {
         </div>
       ) : (
         <>
-          {tab === 'overview' && (
-            <div className="space-y-6">
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <StatCard title="Campaigns" value={campaigns.length} icon={Send} description="Total created" />
-                <StatCard title="Contacts" value={contacts.length || lists.reduce((a, l) => a + (l.contact_count ?? 0), 0)} icon={Users} description="Across all lists" />
-                <StatCard title="Recipients" value={recipients} icon={Send} description="Across all campaigns" />
-                <StatCard title="Open Rate" value={openRate} icon={Users} description="Average opens" />
-              </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <StatCard title="Campaigns" value={campaigns.length} icon={Send} description="Total created" />
+            <StatCard title="Contacts" value={totalContacts} icon={Users} description="Across all lists" />
+            <StatCard title="Recipients" value={recipients} icon={Send} description="Across all campaigns" />
+            <StatCard title="Open Rate" value={openRate} icon={Users} description="Average opens" />
+          </div>
 
-              <div className="space-y-3">
-                {campaigns.length ? (
-                  campaigns.slice(0, 5).map((c) => <CampaignRow key={c.id} campaign={c} onSend={() => sendCampaign(c.id)} />)
-                ) : (
-                  <EmptyState icon={Send} title="No campaigns yet" description="Create your first campaign to start emailing buyers." />
-                )}
-              </div>
-            </div>
-          )}
-
-          {tab === 'campaigns' && (
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* Campaigns */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle>Campaigns</CardTitle>
+                  <CardTitle className="flex items-center gap-2"><Send className="h-4 w-4" /> Campaigns</CardTitle>
                   <CardDescription>Create drafts, schedule, and send to your lists.</CardDescription>
                 </div>
-                <Button variant="outline" onClick={() => setShowNewCampaign((v) => !v)}>
-                  {showNewCampaign ? <Ban className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}
-                  {showNewCampaign ? 'Cancel' : 'New Campaign'}
-                </Button>
               </CardHeader>
               <CardContent className="space-y-4">
                 {showNewCampaign && (
@@ -270,29 +292,33 @@ export default function EmailMarketingPage() {
                       <Label>Email Body</Label>
                       <Textarea name="body" rows={6} required placeholder={'Hello {{name}},\n\nYour body...'} />
                     </div>
-                    <div className="flex justify-end"><Button size="sm" type="submit">Create Draft</Button></div>
+                    <div className="flex justify-end gap-2">
+                      <Button type="button" variant="outline" size="sm" onClick={() => setShowNewCampaign(false)}><X className="mr-1 h-3.5 w-3.5" /> Cancel</Button>
+                      <Button size="sm" type="submit">Create Draft</Button>
+                    </div>
                   </form>
                 )}
+                <div className="flex items-center justify-between">
+                  <h4 className="font-medium">Recent Campaigns</h4>
+                  <Button variant="outline" size="sm" onClick={() => setShowNewCampaign(true)}>
+                    <Plus className="mr-1.5 h-3.5 w-3.5" /> New
+                  </Button>
+                </div>
                 <div className="space-y-2">
-                  {campaigns.length ? campaigns.map((c) => <CampaignRow key={c.id} campaign={c} onSend={() => sendCampaign(c.id)} />) : (
-                    <EmptyState icon={Send} title="No campaigns" description="Create your first campaign above." />
+                  {campaigns.length ? campaigns.slice(0, 5).map((c) => <CampaignRow key={c.id} campaign={c} onSend={() => sendCampaign(c.id)} />) : (
+                    <EmptyState icon={Send} title="No campaigns yet" description="Create your first campaign to start emailing buyers." />
                   )}
                 </div>
               </CardContent>
             </Card>
-          )}
 
-          {tab === 'templates' && (
+            {/* Templates */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle>Templates</CardTitle>
+                  <CardTitle className="flex items-center gap-2"><FilePlus2 className="h-4 w-4" /> Templates</CardTitle>
                   <CardDescription>Reusable emails for workflows and campaigns.</CardDescription>
                 </div>
-                <Button variant="outline" onClick={() => setShowNewTemplate((v) => !v)}>
-                  {showNewTemplate ? <Ban className="mr-2 h-4 w-4" /> : <FilePlus2 className="mr-2 h-4 w-4" />}
-                  {showNewTemplate ? 'Cancel' : 'New Template'}
-                </Button>
               </CardHeader>
               <CardContent className="space-y-4">
                 {showNewTemplate && (
@@ -305,9 +331,18 @@ export default function EmailMarketingPage() {
                       <Label>Body</Label>
                       <Textarea name="body" rows={6} required placeholder={'Available tags: {{name}}, {{email}}, {{company}}, {{country}}'} />
                     </div>
-                    <div className="flex justify-end"><Button size="sm" type="submit">Save Template</Button></div>
+                    <div className="flex justify-end gap-2">
+                      <Button type="button" variant="outline" size="sm" onClick={() => setShowNewTemplate(false)}><X className="mr-1 h-3.5 w-3.5" /> Cancel</Button>
+                      <Button size="sm" type="submit">Save Template</Button>
+                    </div>
                   </form>
                 )}
+                <div className="flex items-center justify-between">
+                  <h4 className="font-medium">Templates</h4>
+                  <Button variant="outline" size="sm" onClick={() => setShowNewTemplate(true)}>
+                    <Plus className="mr-1.5 h-3.5 w-3.5" /> New
+                  </Button>
+                </div>
                 <div className="grid gap-3 md:grid-cols-2">
                   {templates.length ? templates.map((t) => (
                     <div key={t.id} className="rounded-lg border p-4">
@@ -319,99 +354,16 @@ export default function EmailMarketingPage() {
                 </div>
               </CardContent>
             </Card>
-          )}
+          </div>
 
-          {tab === 'lists' && (
-            <div className="grid gap-6 lg:grid-cols-2">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <div>
-                    <CardTitle>Contact Lists</CardTitle>
-                    <CardDescription>Audiences for campaigns.</CardDescription>
-                  </div>
-                  <Button variant="outline" onClick={() => setShowNewList((v) => !v)}>
-                    {showNewList ? <Ban className="mr-2 h-4 w-4" /> : <ListPlus className="mr-2 h-4 w-4" />}
-                    {showNewList ? 'Cancel' : 'New List'}
-                  </Button>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {showNewList && (
-                    <form onSubmit={createList} className="flex gap-2">
-                      <Input name="name" placeholder="e.g. US Buyers 2026" required />
-                      <Button type="submit" size="sm">Create</Button>
-                    </form>
-                  )}
-                  {lists.length ? lists.map((l) => (
-                    <button key={l.id} type="button" onClick={() => { setSelectedList(l.id); setTab('contacts'); }} className="flex w-full items-center justify-between rounded-lg border p-3 text-left transition-colors hover:bg-muted">
-                      <div>
-                        <p className="text-sm font-medium">{l.name}</p>
-                        {l.description && <p className="text-xs text-muted-foreground">{l.description}</p>}
-                      </div>
-                      <Badge variant="secondary">{l.contact_count ?? 0} contacts</Badge>
-                    </button>
-                  )) : <EmptyState icon={Users} title="No lists yet" description="Create a list to start segmenting contacts." />}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Add Contacts</CardTitle>
-                  <CardDescription>Paste emails (one per line) to add to the selected list.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Select value={selectedList} onValueChange={setSelectedList}>
-                    <SelectTrigger><SelectValue placeholder="Select a list (optional)" /></SelectTrigger>
-                    <SelectContent>
-                      {lists.map((l) => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                  <form onSubmit={addContacts} className="space-y-2">
-                    <Textarea name="emails" rows={6} placeholder={'buyer@example.com\nanother@buyer.com'} />
-                    <Button type="submit" size="sm"><Plus className="mr-1 h-3.5 w-3.5" /> Add Contacts</Button>
-                  </form>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {tab === 'contacts' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Contacts ({contacts.length})</CardTitle>
-                <CardDescription>Everyone in your email lists.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {contacts.length ? (
-                  <div className="divide-y divide-border rounded-lg border">
-                    {contacts.map((c) => (
-                      <div key={c.id} className="flex items-center justify-between px-4 py-3">
-                        <div>
-                          <p className="text-sm font-medium">{c.name || c.email}</p>
-                          <p className="text-xs text-muted-foreground">{c.email}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {c.country && <Badge variant="outline">{c.country}</Badge>}
-                          {c.unsubscribed && <Badge variant="secondary">Unsubscribed</Badge>}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : <EmptyState icon={Users} title="No contacts" description="Add contacts from the Lists tab." />}
-              </CardContent>
-            </Card>
-          )}
-
-          {tab === 'workflows' && (
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* Workflows */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
                   <CardTitle className="flex items-center gap-2"><Workflow className="h-4 w-4" /> Workflows</CardTitle>
                   <CardDescription>Automation — new leads, status changes, website inquiries.</CardDescription>
                 </div>
-                <Button variant="outline" onClick={() => setShowNewWorkflow((v) => !v)}>
-                  {showNewWorkflow ? <Ban className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}
-                  {showNewWorkflow ? 'Cancel' : 'New Workflow'}
-                </Button>
               </CardHeader>
               <CardContent className="space-y-4">
                 {showNewWorkflow && (
@@ -427,10 +379,18 @@ export default function EmailMarketingPage() {
                     <p className="text-xs text-muted-foreground">
                       When the trigger fires we add this buyer to the list and/or email them the template, automatically.
                     </p>
-                    <div className="flex justify-end"><Button size="sm" type="submit">Create Workflow</Button></div>
+                    <div className="flex justify-end gap-2">
+                      <Button type="button" variant="outline" size="sm" onClick={() => setShowNewWorkflow(false)}><X className="mr-1 h-3.5 w-3.5" /> Cancel</Button>
+                      <Button size="sm" type="submit">Create Workflow</Button>
+                    </div>
                   </form>
                 )}
-
+                <div className="flex items-center justify-between">
+                  <h4 className="font-medium">Workflows</h4>
+                  <Button variant="outline" size="sm" onClick={() => setShowNewWorkflow(true)}>
+                    <Plus className="mr-1.5 h-3.5 w-3.5" /> New
+                  </Button>
+                </div>
                 <div className="space-y-3">
                   {workflows.length ? workflows.map((w) => (
                     <div key={w.id} className="flex items-center justify-between rounded-lg border p-4">
@@ -454,7 +414,92 @@ export default function EmailMarketingPage() {
                 </div>
               </CardContent>
             </Card>
-          )}
+
+            {/* Lists & Contacts */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2"><ListPlus className="h-4 w-4" /> Lists & Contacts</CardTitle>
+                  <CardDescription>Manage audiences and import contacts.</CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-medium">Contact Lists</h4>
+                    <Button variant="outline" size="sm" onClick={() => setShowNewList(true)}>
+                      <Plus className="mr-1.5 h-3.5 w-3.5" /> New List
+                    </Button>
+                  </div>
+                  {showNewList && (
+                    <form onSubmit={createList} className="flex gap-2 mb-4">
+                      <Input name="name" placeholder="e.g. US Buyers 2026" required />
+                      <Button type="submit" size="sm">Create</Button>
+                      <Button type="button" variant="outline" size="sm" onClick={() => setShowNewList(false)}><X className="mr-1 h-3.5 w-3.5" /> Cancel</Button>
+                    </form>
+                  )}
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {lists.length ? lists.map((l) => (
+                      <button key={l.id} type="button" onClick={() => setSelectedList(l.id)} className="flex w-full items-center justify-between rounded-lg border p-3 text-left transition-colors hover:bg-muted">
+                        <div>
+                          <p className="text-sm font-medium">{l.name}</p>
+                          {l.description && <p className="text-xs text-muted-foreground">{l.description}</p>}
+                        </div>
+                        <Badge variant="secondary">{l.contact_count ?? 0} contacts</Badge>
+                      </button>
+                    )) : <EmptyState icon={Users} title="No lists yet" description="Create a list to start segmenting contacts." />}
+                  </div>
+                </div>
+
+                <div className="border-t pt-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-medium">Contacts ({contacts.length})</h4>
+                      {selectedList && (
+                        <Badge variant="outline" onClick={() => setSelectedList('')} className="cursor-pointer gap-1">
+                          {lists.find((l) => l.id === selectedList)?.name}
+                          <X className="h-3 w-3" onClick={(e) => { e.stopPropagation(); setSelectedList(''); }} />
+                        </Badge>
+                      )}
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => setShowImportContacts(true)}>
+                      <Plus className="mr-1.5 h-3.5 w-3.5" /> Import
+                    </Button>
+                  </div>
+                  {showImportContacts && (
+                    <form onSubmit={addContacts} className="space-y-2 mb-4">
+                      <Select value={selectedList} onValueChange={setSelectedList}>
+                        <SelectTrigger className="w-[200px]"><SelectValue placeholder="Select a list (optional)" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">All Lists (no list)</SelectItem>
+                          {lists.map((l) => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <Textarea name="emails" rows={4} placeholder={'buyer@example.com\nanother@buyer.com'} />
+                      <div className="flex justify-end gap-2">
+                        <Button type="button" variant="outline" size="sm" onClick={() => setShowImportContacts(false)}><X className="mr-1 h-3.5 w-3.5" /> Cancel</Button>
+                        <Button type="submit" size="sm"><Plus className="mr-1 h-3.5 w-3.5" /> Add Contacts</Button>
+                      </div>
+                    </form>
+                  )}
+                  <div className="divide-y divide-border rounded-lg border max-h-80 overflow-y-auto">
+                    {contacts.length ? contacts.map((c) => (
+                      <div key={c.id} className="flex items-center justify-between px-4 py-3">
+                        <div>
+                          <p className="text-sm font-medium">{c.name || c.email}</p>
+                          <p className="text-xs text-muted-foreground">{c.email}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {c.country && <Badge variant="outline">{c.country}</Badge>}
+                          {c.unsubscribed && <Badge variant="secondary">Unsubscribed</Badge>}
+                        </div>
+                      </div>
+                    )) : <div className="p-8 text-center"><EmptyState icon={Users} title="No contacts" description={selectedList ? "Add contacts to this list." : "Select a list or import contacts."} /></div>}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </>
       )}
     </div>
