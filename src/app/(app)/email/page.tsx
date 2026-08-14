@@ -4,7 +4,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import {
   Send, Users, Plus, Trash2, ListPlus, FilePlus2,
   Workflow, Loader2, Zap, Play, Ban, ChevronDown, X,
-  ShieldCheck, Mail as MailIcon, MailOpen, Webhook, ArrowRight
+  ShieldCheck, Mail as MailIcon, MailOpen, Webhook, ArrowRight, BarChart3, Settings
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/lib/api-client';
@@ -277,6 +277,8 @@ const newActions: NewAction[] = [
             <QuickLink href="/email/log" icon={MailOpen} label="Email Log" description="Delivery events" />
             <QuickLink href="/email/triggers" icon={Zap} label="Triggers" description="Event automation" />
             <QuickLink href="/email/webhooks" icon={Webhook} label="Webhooks" description="Integrations" />
+            <QuickLink href="/email/analytics" icon={BarChart3} label="Email Analytics" description="Performance" />
+            <QuickLink href="/email/settings" icon={Settings} label="Email Settings" description="Senders, keys, webhooks" />
           </div>
 
           <div className="grid gap-6 lg:grid-cols-2">

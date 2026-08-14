@@ -89,6 +89,8 @@ const NAV: NavSection[] = [
       { href: '/email/triggers', label: 'Triggers', icon: Zap },
       { href: '/email/webhooks', label: 'Webhooks', icon: Webhook },
       { href: '/email/log', label: 'Email Log', icon: MailOpen },
+      { href: '/email/analytics', label: 'Email Analytics', icon: BarChart3 },
+      { href: '/email/settings', label: 'Email Settings', icon: Settings },
       { href: '/website', label: 'Website', icon: Globe },
       { href: '/analytics', label: 'Analytics', icon: BarChart3 },
       { href: '/assistant', label: 'AI Assistant', icon: Sparkles }
