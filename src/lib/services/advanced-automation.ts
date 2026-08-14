@@ -335,8 +335,8 @@ export async function trackBehavioralEvent(
       id: data.id,
       organization_id: organizationId,
       occurred_at: data.occurred_at,
-      event_type: event.event_type,
-      event_data: event.event_data,
+      event_type: event.event_type as string,
+      event_data: event.event_data as Record<string, unknown>,
       contact_id: event.contact_id,
       lead_id: event.lead_id,
       session_id: event.session_id,
@@ -344,7 +344,7 @@ export async function trackBehavioralEvent(
       user_agent: event.user_agent,
       referrer: event.referrer
     };
-    await triggerBehavioralWorkflows(supabase, organizationId, event.event_type, fullEvent);
+    await triggerBehavioralWorkflows(supabase, organizationId, event.event_type as string, fullEvent);
   }
 
   if (error) {
