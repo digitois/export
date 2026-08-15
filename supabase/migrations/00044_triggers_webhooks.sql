@@ -6,17 +6,17 @@
 -- ------------------------------------------------------------------
 
 -- Trigger event types (extends existing workflow_trigger)
-do $$ begin
-  -- Add more event types if not exists
-  do $$ begin
-    alter type public.workflow_trigger add value if not exists 'sequence_completed';
-    alter type public.workflow_trigger add value if not exists 'sequence_step_sent';
-    alter type public.workflow_trigger add value if not exists 'contact_added_to_list';
-    alter type public.workflow_trigger add value if not exists 'contact_removed_from_list';
-    alter type public.workflow_trigger add value if not exists 'tag_added';
-    alter type public.workflow_trigger add value if not exists 'tag_removed';
-  exception when duplicate_object then null; end $$;
-end $$;
+do $$
+begin
+  alter type public.workflow_trigger add value if not exists 'sequence_completed';
+  alter type public.workflow_trigger add value if not exists 'sequence_step_sent';
+  alter type public.workflow_trigger add value if not exists 'contact_added_to_list';
+  alter type public.workflow_trigger add value if not exists 'contact_removed_from_list';
+  alter type public.workflow_trigger add value if not exists 'tag_added';
+  alter type public.workflow_trigger add value if not exists 'tag_removed';
+exception when duplicate_object then null;
+end;
+$$;
 
 -- Condition operator type
 do $$ begin
