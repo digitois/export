@@ -267,6 +267,7 @@ export async function createVariant(
       name: input.name,
       subject: input.subject ?? parent.subject,
       subject_text: input.subject_text ?? parent.subject_text,
+      body: parent.body ?? '',
       body_json: input.body_json ?? parent.body_json,
       category: parent.category,
       thumbnail_url: parent.thumbnail_url,
@@ -408,12 +409,15 @@ export async function createTemplateFromLibrary(
   const { data: libraryTemplate, error: libraryError } = await getLibraryTemplate(supabase, slug);
   if (libraryError || !libraryTemplate) return { data: null, error: new Error('Library template not found') };
 
+  const body = extractPlainText(libraryTemplate.body_json as Record<string, unknown>) || '';
+
   const { data, error } = await supabase
     .from('email_templates')
     .insert({
       organization_id: organizationId,
       name: customName ?? libraryTemplate.name,
       subject: libraryTemplate.subject,
+      body,
       body_json: libraryTemplate.body_json,
       preview_text: libraryTemplate.preview_text,
       category: libraryTemplate.category,
@@ -439,7 +443,19 @@ export function compileTemplate(bodyJson: Record<string, unknown>, variables: Re
 
 export function extractPlainText(bodyJson: Record<string, unknown>): string {
   // Extract plain text from Tiptap JSON for text version
-  return '';
+  try {
+    const parts: string[] = [];
+    const walk = (node: unknown): void => {
+      if (!node || typeof node !== 'object') return;
+      const n = node as Record<string, unknown>;
+      if (typeof n.text === 'string' && n.text) parts.push(n.text);
+      if (Array.isArray(n.content)) n.content.forEach(walk);
+    };
+    walk(bodyJson);
+    return parts.join('\n\n');
+  } catch {
+    return '';
+  }
 }
 
 // ============================================

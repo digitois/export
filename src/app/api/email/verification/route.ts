@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth, requireRole, handleApiError, ok } from '@/lib/api';
+import { requireAuth, requireRole, handleApiError, ok , error as apiError } from '@/lib/api';
 import {
   localCheckEmail, verifyEmail, startBulkVerify,
   getBulkVerifyStatus, getVerificationStats, loadDisposableDomains, getDisposableDomains
@@ -14,19 +14,19 @@ export async function GET(request: NextRequest) {
 
     if (jobId) {
       const { data, error } = await getBulkVerifyStatus(ctx.supabase, jobId);
-      if (error) return ok({ error: error.message }, { status: 400 });
+      if (error) return apiError(error.message, 400);
       return ok(data);
     }
 
     if (scope === 'stats') {
       const { data, error } = await getVerificationStats(ctx.supabase, ctx.organizationId);
-      if (error) return ok({ error: error.message }, { status: 400 });
+      if (error) return apiError(error.message, 400);
       return ok(data);
     }
 
     if (scope === 'disposable') {
       const { data, error } = await getDisposableDomains(ctx.supabase);
-      if (error) return ok({ error: error.message }, { status: 400 });
+      if (error) return apiError(error.message, 400);
       return ok(data);
     }
 
@@ -61,17 +61,17 @@ export async function POST(request: NextRequest) {
         body.listId,
         body.provider ?? 'local'
       );
-      if (error) return ok({ error: error.message }, { status: 400 });
+      if (error) return apiError(error.message, 400);
       return ok(data);
     }
 
     if (action === 'load-disposable') {
       const { error } = await loadDisposableDomains(ctx.supabase);
-      if (error) return ok({ error: error.message }, { status: 400 });
+      if (error) return apiError(error.message, 400);
       return ok({ success: true });
     }
 
-    return ok({ error: 'Unknown action' }, { status: 400 });
+    return apiError('Unknown action', 400);
   } catch (err) {
     return handleApiError(err);
   }

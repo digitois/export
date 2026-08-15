@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth, handleApiError, ok } from '@/lib/api';
+import { requireAuth, handleApiError, ok , error as apiError } from '@/lib/api';
 import { getWorkflow, updateWorkflow, deleteWorkflow, getWorkflowWithNodes, triggerWorkflow } from '@/lib/services/email-workflows';
 
 export async function GET(
@@ -16,7 +16,7 @@ export async function GET(
       const { data, error } = await getWorkflowWithNodes(ctx.supabase, ctx.organizationId, id);
       
       if (error) {
-        return ok({ error: error.message }, { status: 400 });
+        return apiError(error.message, 400);
       }
 
       return ok({ data });
@@ -52,7 +52,7 @@ export async function PUT(
 
     if (error) {
       const errorMessage = typeof error === 'string' ? error : (error as Error).message;
-      return ok({ error: errorMessage }, { status: 400 });
+      return apiError(String(errorMessage), 400);
     }
 
     return ok({ data });
@@ -72,7 +72,7 @@ export async function DELETE(
 
     if (error) {
       const errorMessage = typeof error === 'string' ? error : (error as Error).message;
-      return ok({ error: errorMessage }, { status: 400 });
+      return apiError(String(errorMessage), 400);
     }
 
     return ok({ success: true });
@@ -101,13 +101,13 @@ export async function PATCH(
       );
 
       if (error) {
-        return ok({ error: error.message }, { status: 400 });
+        return apiError(error.message, 400);
       }
 
       return ok({ data });
     }
 
-    return ok({ error: 'Invalid action' }, { status: 400 });
+    return apiError('Invalid action', 400);
   } catch (err) {
     return handleApiError(err);
   }

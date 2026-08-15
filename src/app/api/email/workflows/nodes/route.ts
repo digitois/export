@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth, handleApiError, ok } from '@/lib/api';
+import { requireAuth, handleApiError, ok , error as apiError } from '@/lib/api';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      return ok({ error: error.message }, { status: 400 });
+      return apiError(error.message, 400);
     }
 
     return ok({ data });

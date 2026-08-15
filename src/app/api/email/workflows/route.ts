@@ -1,4 +1,4 @@
-import { requireAuth, handleApiError, ok } from '@/lib/api';
+import { requireAuth, handleApiError, ok , error as apiError } from '@/lib/api';
 import { listWorkflows, getWorkflowRuns } from '@/lib/services/workflows';
 import { z } from 'zod';
 
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
       .select()
       .single();
 
-    if (error) return ok({ error: error.message }, { status: 400 });
+    if (error) return apiError(error.message, 400);
     return ok(data);
   } catch (err) {
     return handleApiError(err);
@@ -60,14 +60,14 @@ export async function DELETE(request: Request) {
     const ctx = await requireAuth();
     const url = new URL(request.url);
     const id = url.searchParams.get('id');
-    if (!id) return ok({ error: 'Missing id' }, { status: 400 });
+    if (!id) return apiError('Missing id', 400);
 
     const { error } = await ctx.supabase
       .from('email_workflows')
       .delete()
       .eq('organization_id', ctx.organizationId)
       .eq('id', id);
-    if (error) return ok({ error: error.message }, { status: 400 });
+    if (error) return apiError(error.message, 400);
     return ok({ deleted: true });
   } catch (err) {
     return handleApiError(err);

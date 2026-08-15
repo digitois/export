@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth, handleApiError, ok } from '@/lib/api';
+import { requireAuth, handleApiError, ok , error as apiError } from '@/lib/api';
 import { createWorkflow, listWorkflows, getWorkflow, updateWorkflow, deleteWorkflow, getWorkflowWithNodes } from '@/lib/services/email-workflows';
 
 export async function GET(request: NextRequest) {
@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const { data, error } = await listWorkflows(ctx.supabase, ctx.organizationId, activeOnly);
     
     if (error) {
-      return ok({ error: error.message }, { status: 400 });
+      return apiError(error.message, 400);
     }
 
     return ok({ data });
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     );
 
     if (error) {
-      return ok({ error: error.message }, { status: 400 });
+      return apiError(error.message, 400);
     }
 
     return ok({ data });

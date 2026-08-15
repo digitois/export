@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth, handleApiError, ok } from '@/lib/api';
+import { requireAuth, handleApiError, ok , error as apiError } from '@/lib/api';
 import { getEmailAnalytics } from '@/lib/services/email-analytics';
 
 export async function GET(request: NextRequest) {

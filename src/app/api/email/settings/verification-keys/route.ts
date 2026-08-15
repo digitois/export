@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth, requireRole, handleApiError, ok } from '@/lib/api';
+import { requireAuth, requireRole, handleApiError, ok , error as apiError } from '@/lib/api';
 import { encryptSecret, decryptSecret } from '@/lib/crypto';
 
 export async function GET() {
@@ -13,7 +13,7 @@ export async function GET() {
       .single();
 
     if (error && error.code !== 'PGRST116') {
-      return ok({ error: error.message }, { status: 400 });
+      return apiError(error.message, 400);
     }
 
     const raw = data?.value as Record<string, string> | null | undefined;
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
         value
       }, { onConflict: 'organization_id,key' });
 
-    if (error) return ok({ error: error.message }, { status: 400 });
+    if (error) return apiError(error.message, 400);
     return ok({ success: true });
   } catch (err) {
     return handleApiError(err);

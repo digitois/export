@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth, handleApiError, ok } from '@/lib/api';
+import { requireAuth, handleApiError, ok , error as apiError } from '@/lib/api';
 import {
   logEmailActivity, getActivityLog, getContactTimeline,
   getActivityStats, checkSuppression
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
 
     if (contactId) {
       const { data, error } = await getContactTimeline(ctx.supabase, ctx.organizationId, contactId);
-      if (error) return ok({ error: error.message }, { status: 400 });
+      if (error) return apiError(error.message, 400);
       return ok(data);
     }
 
@@ -25,13 +25,13 @@ export async function GET(request: NextRequest) {
         searchParams.get('dateFrom') ?? undefined,
         searchParams.get('dateTo') ?? undefined
       );
-      if (error) return ok({ error: error.message }, { status: 400 });
+      if (error) return apiError(error.message, 400);
       return ok(data);
     }
 
     if (scope === 'suppression') {
       const { data, error } = await checkSuppression(ctx.supabase, ctx.organizationId, searchParams.get('email') ?? '');
-      if (error) return ok({ error: error.message }, { status: 400 });
+      if (error) return apiError(error.message, 400);
       return ok(data);
     }
 
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
       limit: searchParams.get('limit') ? Number(searchParams.get('limit')) : undefined,
       offset: searchParams.get('offset') ? Number(searchParams.get('offset')) : undefined
     });
-    if (error) return ok({ error: error.message }, { status: 400 });
+    if (error) return apiError(error.message, 400);
     return ok({ items: data ?? [], count: count ?? 0 });
   } catch (err) {
     return handleApiError(err);
@@ -65,11 +65,11 @@ export async function POST(request: NextRequest) {
         ...body.input,
         organization_id: ctx.organizationId
       });
-      if (error) return ok({ error: error.message }, { status: 400 });
+      if (error) return apiError(error.message, 400);
       return ok(data);
     }
 
-    return ok({ error: 'Unknown action' }, { status: 400 });
+    return apiError('Unknown action', 400);
   } catch (err) {
     return handleApiError(err);
   }

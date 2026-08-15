@@ -1,4 +1,4 @@
-import { requireAuth, handleApiError, ok } from '@/lib/api';
+import { requireAuth, handleApiError, ok , error as apiError } from '@/lib/api';
 import { z } from 'zod';
 import { listTemplates, createTemplate } from '@/lib/services/email';
 
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const parsed = templateSchema.parse(body);
     const { data, error } = await createTemplate(ctx.supabase, ctx.organizationId, ctx.userId, parsed);
-    if (error) return ok({ error: error.message }, { status: 400 });
+    if (error) return apiError(error.message, 400);
     return ok(data);
   } catch (err) {
     return handleApiError(err);
@@ -35,7 +35,7 @@ export async function DELETE(request: Request) {
   try {
     const ctx = await requireAuth();
     const id = new URL(request.url).searchParams.get('id');
-    if (!id) return ok({ error: 'Template id required' }, { status: 400 });
+    if (!id) return apiError('Template id required', 400);
 
     const { error } = await ctx.supabase
       .from('email_templates')
@@ -43,7 +43,7 @@ export async function DELETE(request: Request) {
       .eq('organization_id', ctx.organizationId)
       .eq('id', id);
 
-    if (error) return ok({ error: error.message }, { status: 400 });
+    if (error) return apiError(error.message, 400);
     return ok({ data: true });
   } catch (err) {
     return handleApiError(err);

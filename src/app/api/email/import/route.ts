@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth, requireRole, handleApiError, ok } from '@/lib/api';
+import { requireAuth, requireRole, handleApiError, ok , error as apiError } from '@/lib/api';
 import {
   createImportJob, getImportJob, listImportJobs, getImportErrors,
   updateImportJob, processImport
@@ -15,16 +15,16 @@ export async function GET(request: NextRequest) {
     if (jobId) {
       if (errors) {
         const { data, error } = await getImportErrors(ctx.supabase, ctx.organizationId, jobId);
-        if (error) return ok({ error: error.message }, { status: 400 });
+        if (error) return apiError(error.message, 400);
         return ok(data);
       }
       const { data, error } = await getImportJob(ctx.supabase, ctx.organizationId, jobId);
-      if (error) return ok({ error: error.message }, { status: 400 });
+      if (error) return apiError(error.message, 400);
       return ok(data);
     }
 
     const { data, error } = await listImportJobs(ctx.supabase, ctx.organizationId);
-    if (error) return ok({ error: error.message }, { status: 400 });
+    if (error) return apiError(error.message, 400);
     return ok(data ?? []);
   } catch (err) {
     return handleApiError(err);
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
 
     if (action === 'create-job') {
       const { data, error } = await createImportJob(ctx.supabase, ctx.organizationId, ctx.userId, body.input);
-      if (error) return ok({ error: error.message }, { status: 400 });
+      if (error) return apiError(error.message, 400);
       return ok(data);
     }
 
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
         total_rows: body.contacts?.length ?? 0,
         column_mapping: body.columnMapping ?? {}
       });
-      if (!job) return ok({ error: 'Failed to create import job' }, { status: 400 });
+      if (!job) return apiError('Failed to create import job', 400);
 
       const result = await processImport(
         ctx.supabase,
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
       return ok({ job, ...result });
     }
 
-    return ok({ error: 'Unknown action' }, { status: 400 });
+    return apiError('Unknown action', 400);
   } catch (err) {
     return handleApiError(err);
   }
@@ -78,7 +78,7 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json();
 
     const { data, error } = await updateImportJob(ctx.supabase, ctx.organizationId, body.id, body.updates);
-    if (error) return ok({ error: error.message }, { status: 400 });
+    if (error) return apiError(error.message, 400);
     return ok(data);
   } catch (err) {
     return handleApiError(err);
