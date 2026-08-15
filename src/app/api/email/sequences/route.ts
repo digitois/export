@@ -5,6 +5,7 @@ import {
   addStep, updateStep, removeStep, reorderSteps, listSteps,
   enrollContact, pauseEnrollment, resumeEnrollment, stopEnrollment, listEnrollments
 } from '@/lib/services/sequences';
+import type { CreateStepInput } from '@/lib/services/sequences';
 
 export async function GET(request: NextRequest) {
   try {
@@ -44,7 +45,13 @@ export async function POST(request: NextRequest) {
         return ok(data);
       }
       case 'add-step': {
-        const { data, error } = await addStep(ctx.supabase, ctx.organizationId, body.sequenceId, body);
+        const { sequenceId, type, delay_value, delay_unit, template_id } = body;
+        const { data, error } = await addStep(ctx.supabase, ctx.organizationId, sequenceId, {
+          type,
+          delay_value,
+          delay_unit,
+          template_id
+        } as CreateStepInput);
         if (error) return apiError(error.message, 400);
         return ok(data);
       }
