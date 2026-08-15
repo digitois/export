@@ -126,13 +126,31 @@ export async function sendCampaign(supabase: SupabaseClient, organizationId: str
   if (campaign.list_id) query = query.eq('list_id', campaign.list_id);
 
   const { data: contacts } = await query;
+  const list = contacts ?? [];
 
+  // Load B variant if this is an A/B campaign
+  let variant: { subject: string; body: string } | null = null;
+  if (campaign.variant_template_id) {
+    const { data: v } = await supabase
+      .from('email_templates')
+      .select('subject, body')
+      .eq('id', campaign.variant_template_id)
+      .eq('organization_id', organizationId)
+      .single();
+    if (v) variant = v;
+  }
+
+  const splitPercent = campaign.variant_split_percent ?? 50;
   let sent = 0;
-  for (const contact of (contacts ?? [])) {
+  for (let i = 0; i < list.length; i++) {
+    const contact = list[i];
+    // Even-indexed contacts past the split threshold get the B variant
+    const useVariant = variant && (i % 100 >= splitPercent);
+
     const res = await sendEmail({
       to: contact.email,
-      subject: campaign.subject,
-      html: renderTemplate(campaign.body, { name: contact.name ?? '', email: contact.email })
+      subject: useVariant ? variant!.subject : campaign.subject,
+      html: renderTemplate(useVariant ? variant!.body : campaign.body, { name: contact.name ?? '', email: contact.email })
     });
     if (res.messageId) {
       sent++;
@@ -141,14 +159,15 @@ export async function sendCampaign(supabase: SupabaseClient, organizationId: str
         campaign_id: id,
         contact_id: contact.id,
         email: contact.email,
-        event: 'sent'
+        event: 'sent',
+        template_id: useVariant ? campaign.variant_template_id : (campaign.template_id ?? null)
       });
     }
   }
 
   await supabase
     .from('email_campaigns')
-    .update({ status: 'sent', sent_count: sent, recipients_count: (contacts ?? []).length })
+    .update({ status: 'sent', sent_count: sent, recipients_count: list.length })
     .eq('id', id);
 
   await supabase

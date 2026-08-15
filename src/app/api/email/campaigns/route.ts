@@ -31,7 +31,15 @@ export async function POST(request: Request) {
       }
     }
 
-    const { data, error } = await createCampaign(ctx.supabase, ctx.organizationId, ctx.userId, parsed);
+    const { data, error } = await createCampaign(ctx.supabase, ctx.organizationId, ctx.userId, {
+      name: parsed.name,
+      subject: parsed.subject,
+      body: parsed.body,
+      list_id: parsed.listId ?? null,
+      template_id: parsed.templateId ?? null,
+      variant_template_id: parsed.variantTemplateId ?? null,
+      variant_split_percent: parsed.variantSplitPercent ?? 50
+    });
     if (error) return ok({ error: error.message }, { status: 400 });
 
     if (parsed.scheduledAt) {

@@ -268,6 +268,8 @@ export const emailCampaignSchema = z.object({
   body: z.string().min(1),
   listId: z.string().uuid().optional().nullable(),
   templateId: z.string().uuid().optional().nullable(),
+  variantTemplateId: z.string().uuid().optional().nullable(),
+  variantSplitPercent: z.number().int().min(0).max(100).optional().nullable(),
   scheduledAt: z.string().datetime().optional().nullable()
 });
 

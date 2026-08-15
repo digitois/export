@@ -24,7 +24,7 @@ import { formatDate } from '@/lib/utils';
 
 interface List { id: string; name: string; description?: string | null; contact_count?: number; }
 interface Contact { id: string; email: string; name?: string | null; country?: string | null; unsubscribed?: boolean; }
-interface Template { id: string; name: string; subject: string; body: string; }
+interface Template { id: string; name: string; subject: string; body: string; is_variant?: boolean; parent_template_id?: string | null; }
 interface Campaign {
   id: string; name: string; subject: string; status: string;
   recipients_count?: number; opened_count?: number;
@@ -153,7 +153,9 @@ export default function EmailMarketingPage() {
           subject: String(fd.get('subject')),
           body: String(fd.get('body')),
           listId: (fd.get('list') as string) || null,
-          templateId: (fd.get('template') as string) || null
+          templateId: (fd.get('template') as string) || null,
+          variantTemplateId: (fd.get('variantTemplate') as string) || null,
+          variantSplitPercent: Number(fd.get('variantSplit') || 50)
         }
       });
       toast.success('Campaign draft created');
@@ -299,7 +301,14 @@ const newActions: NewAction[] = [
                     </div>
                     <div className="grid gap-4 md:grid-cols-2">
                       <SelectField name="list" label="Send To (List)" options={lists.map((l) => ({ value: l.id, label: l.name }))} placeholder="All contacts (no list)" />
-                      <SelectField name="template" label="Start From Template" options={templates.map((t) => ({ value: t.id, label: t.name }))} placeholder="None" />
+                      <SelectField name="template" label="Start From Template" options={templates.map((t) => ({ value: t.id, label: `${t.name}${t.is_variant ? ' (variant)' : ''}` }))} placeholder="None" />
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2 rounded-md border border-dashed p-3">
+                      <SelectField name="variantTemplate" label="A/B Test Variant (optional)" options={templates.map((t) => ({ value: t.id, label: `${t.name}${t.is_variant ? ' (variant)' : ''}` }))} placeholder="No A/B test" />
+                      <div className="space-y-1">
+                        <Label htmlFor="variantSplit">Variant B Split (% of contacts)</Label>
+                        <Input id="variantSplit" name="variantSplit" type="number" min={0} max={100} defaultValue={50} />
+                      </div>
                     </div>
                     <div className="space-y-1">
                       <Label>Email Body</Label>
