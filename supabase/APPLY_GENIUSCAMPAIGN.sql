@@ -973,31 +973,33 @@ do $$ begin
   end if;
 end $$;
 
--- Main email activity log
-create table if not exists public.email_activities (
-  id uuid primary key default gen_random_uuid(),
-  organization_id uuid not null references public.organizations (id) on delete cascade,
-  sender_account_id uuid references public.sender_accounts (id) on delete set null,
-  contact_id uuid references public.email_contacts (id) on delete set null,
-  lead_id uuid references public.leads (id) on delete set null,
-  email text not null,
-  event public.email_event_type not null,
-  message_id text,
-  template_id uuid references public.email_templates (id) on delete set null,
-  campaign_id uuid,
-  sequence_id uuid references public.sequences (id) on delete set null,
-  sequence_enrollment_id uuid references public.sequence_enrollments (id) on delete set null,
-  bounce_type public.email_bounce_type,
-  bounce_subtype text,
-  bounce_diagnostic text,
-  click_url text,
-  click_count int default 1,
-  open_count int default 1,
-  user_agent text,
-  ip_address text,
-  metadata jsonb default '{}'::jsonb,
-  occurred_at timestamptz not null default now()
-);
+-- Main email activity log (extends table created in 00014)
+alter table public.email_activities
+  add column if not exists sender_account_id uuid references public.sender_accounts (id) on delete set null,
+  add column if not exists lead_id uuid references public.leads (id) on delete set null,
+  add column if not exists message_id text,
+  add column if not exists template_id uuid references public.email_templates (id) on delete set null,
+  add column if not exists sequence_id uuid references public.sequences (id) on delete set null,
+  add column if not exists sequence_enrollment_id uuid references public.sequence_enrollments (id) on delete set null,
+  add column if not exists bounce_type public.email_bounce_type,
+  add column if not exists bounce_subtype text,
+  add column if not exists bounce_diagnostic text,
+  add column if not exists click_url text,
+  add column if not exists click_count int default 1,
+  add column if not exists open_count int default 1,
+  add column if not exists user_agent text,
+  add column if not exists ip_address text,
+  add column if not exists metadata jsonb default '{}'::jsonb;
+
+-- Convert event column to typed enum (values from 00014 all exist in enum)
+do $$
+begin
+  alter table public.email_activities
+    alter column event type public.email_event_type
+      using event::public.email_event_type;
+exception when others then null;
+end;
+$$;
 
 -- Email tracking pixels (for open tracking)
 create table if not exists public.email_tracking_pixels (
@@ -1380,17 +1382,31 @@ alter table public.email_templates
   add column if not exists thumbnail_url text,
   add column if not exists usage_count int not null default 0;
 
--- Template blocks (drag-and-drop components)
-create table if not exists public.email_template_blocks (
-  id uuid primary key default gen_random_uuid(),
-  template_id uuid not null references public.email_templates (id) on delete cascade,
-  block_type text not null check (block_type in ('text', 'image', 'button', 'divider', 'spacer', 'social', 'cta', 'html', 'personalization')),
-  position int not null default 0,
-  config jsonb not null default '{}'::jsonb, -- Block-specific settings
-  content jsonb, -- Block content data
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
+-- Template blocks (drag-and-drop components) - extends table created in 00039
+-- Re-point template_id FK from email_templates_enhanced to email_templates
+alter table public.email_template_blocks
+  drop constraint if exists email_template_blocks_template_id_fkey;
+alter table public.email_template_blocks
+  add constraint email_template_blocks_template_id_fkey
+  foreign key (template_id) references public.email_templates (id) on delete cascade;
+
+-- Ensure allowed block_type values (00039 created this as plain text)
+do $$
+begin
+  alter table public.email_template_blocks
+    drop constraint if exists email_template_blocks_block_type_check;
+exception when others then null;
+end;
+$$;
+
+do $$
+begin
+  alter table public.email_template_blocks
+    add constraint email_template_blocks_block_type_check
+    check (block_type in ('text', 'image', 'button', 'divider', 'spacer', 'social', 'cta', 'html', 'personalization'));
+exception when duplicate_object then null;
+end;
+$$;
 
 -- Template library (prebuilt templates)
 create table if not exists public.template_library (

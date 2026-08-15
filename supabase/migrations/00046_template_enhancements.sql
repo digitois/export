@@ -17,17 +17,31 @@ alter table public.email_templates
   add column if not exists thumbnail_url text,
   add column if not exists usage_count int not null default 0;
 
--- Template blocks (drag-and-drop components)
-create table if not exists public.email_template_blocks (
-  id uuid primary key default gen_random_uuid(),
-  template_id uuid not null references public.email_templates (id) on delete cascade,
-  block_type text not null check (block_type in ('text', 'image', 'button', 'divider', 'spacer', 'social', 'cta', 'html', 'personalization')),
-  position int not null default 0,
-  config jsonb not null default '{}'::jsonb, -- Block-specific settings
-  content jsonb, -- Block content data
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
+-- Template blocks (drag-and-drop components) - extends table created in 00039
+-- Re-point template_id FK from email_templates_enhanced to email_templates
+alter table public.email_template_blocks
+  drop constraint if exists email_template_blocks_template_id_fkey;
+alter table public.email_template_blocks
+  add constraint email_template_blocks_template_id_fkey
+  foreign key (template_id) references public.email_templates (id) on delete cascade;
+
+-- Ensure allowed block_type values (00039 created this as plain text)
+do $$
+begin
+  alter table public.email_template_blocks
+    drop constraint if exists email_template_blocks_block_type_check;
+exception when others then null;
+end;
+$$;
+
+do $$
+begin
+  alter table public.email_template_blocks
+    add constraint email_template_blocks_block_type_check
+    check (block_type in ('text', 'image', 'button', 'divider', 'spacer', 'social', 'cta', 'html', 'personalization'));
+exception when duplicate_object then null;
+end;
+$$;
 
 -- Template library (prebuilt templates)
 create table if not exists public.template_library (
