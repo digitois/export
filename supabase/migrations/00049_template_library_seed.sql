@@ -40,7 +40,7 @@ insert into public.template_library (slug, name, description, category, subject,
   'promotion',
   'Special offer inside – {{discount}} off',
   'Limited-time promotional offer with CTA.',
-  '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Hi {{first_name}},"}]},{"type":"paragraph","content":[{"type":"text","text":"For a limited time, get {{discount}} off your next order at {{company_name}}."}]},{"type":"paragraph","content":[{"type":"text","text":"Use code {{promo_code}} at checkout."}]},{"type":"button","attrs":{"text":"Claim Offer","url":"{{offer_url}}"}}]}]}'::jsonb,
+  '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Hi {{first_name}},"}]},{"type":"paragraph","content":[{"type":"text","text":"For a limited time, get {{discount}} off your next order at {{company_name}}."}]},{"type":"paragraph","content":[{"type":"text","text":"Use code {{promo_code}} at checkout."}]},{"type":"button","attrs":{"text":"Claim Offer","url":"{{offer_url}}"}}]}'::jsonb,
   array['promo','offer','discount']
 ),
 (
@@ -60,7 +60,7 @@ insert into public.template_library (slug, name, description, category, subject,
   'announcement',
   'We just launched {{product_name}}',
   'Exciting new product launch.',
-  '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Hi {{first_name}},"}]},{"type":"paragraph","content":[{"type":"text","text":"We just launched {{product_name}} – the latest from {{company_name}}."}]},{"type":"paragraph","content":[{"type":"text","text":"Here are the highlights:"}]},{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"{{feature_1}}"}]}]},{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"{{feature_2}}"}]}]}]},{"type":"button","attrs":{"text":"Learn More","url":"{{product_url}}"}}]}]}'::jsonb,
+  '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Hi {{first_name}},"}]},{"type":"paragraph","content":[{"type":"text","text":"We just launched {{product_name}} – the latest from {{company_name}}."}]},{"type":"paragraph","content":[{"type":"text","text":"Here are the highlights:"}]},{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"{{feature_1}}"}]}]},{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"{{feature_2}}"}]}]}]},{"type":"button","attrs":{"text":"Learn More","url":"{{product_url}}"}}]}'::jsonb,
   array['launch','announcement']
 ),
 (
@@ -70,7 +70,7 @@ insert into public.template_library (slug, name, description, category, subject,
   'promotion',
   'Did you leave something behind?',
   'Recover abandoned carts.',
-  '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Hi {{first_name}},"}]},{"type":"paragraph","content":[{"type":"text","text":"We noticed you left some items in your cart at {{company_name}}."}]},{"type":"paragraph","content":[{"type":"text","text":"Your cart is saved — {here is a reminder|check out now} to complete your purchase."}]},{"type":"button","attrs":{"text":"Complete Purchase","url":"{{cart_url}}"}}]}]}'::jsonb,
+  '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Hi {{first_name}},"}]},{"type":"paragraph","content":[{"type":"text","text":"We noticed you left some items in your cart at {{company_name}}."}]},{"type":"paragraph","content":[{"type":"text","text":"Your cart is saved — {here is a reminder|check out now} to complete your purchase."}]},{"type":"button","attrs":{"text":"Complete Purchase","url":"{{cart_url}}"}}]}'::jsonb,
   array['cart','recovery']
 ),
 (
@@ -90,7 +90,7 @@ insert into public.template_library (slug, name, description, category, subject,
   'newsletter',
   'Your monthly roundup from {{company_name}}',
   'Product roundup newsletter.',
-  '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Hi {{first_name}},"}]},{"type":"paragraph","content":[{"type":"text","text":"Here is your monthly roundup from {{company_name}}:"}]},{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"{{product_1}}"}]}]},{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"{{product_2}}"}]}]},{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"{{product_3}}"}]}]}]},{"type":"button","attrs":{"text":"View Catalog","url":"{{catalog_url}}"}}]}]}'::jsonb,
+  '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Hi {{first_name}},"}]},{"type":"paragraph","content":[{"type":"text","text":"Here is your monthly roundup from {{company_name}}:"}]},{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"{{product_1}}"}]}]},{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"{{product_2}}"}]}]},{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"{{product_3}}"}]}]}]},{"type":"button","attrs":{"text":"View Catalog","url":"{{catalog_url}}"}}]}'::jsonb,
   array['newsletter','roundup']
 ),
 (
@@ -100,7 +100,7 @@ insert into public.template_library (slug, name, description, category, subject,
   'follow_up',
   'We miss you at {{company_name}}',
   'Re-engage lapsed customers.',
-  '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Hi {{first_name}},"}]},{"type":"paragraph","content":[{"type":"text","text":"It has been a while since we last connected. As a thank you, here is {{discount}} off your next order at {{company_name}}."}]},{"type":"button","attrs":{"text":"Redeem Offer","url":"{{offer_url}}"}}]}]}'::jsonb,
+  '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Hi {{first_name}},"}]},{"type":"paragraph","content":[{"type":"text","text":"It has been a while since we last connected. As a thank you, here is {{discount}} off your next order at {{company_name}}."}]},{"type":"button","attrs":{"text":"Redeem Offer","url":"{{offer_url}}"}}]}'::jsonb,
   array['re-engagement','winback']
 ),
 (

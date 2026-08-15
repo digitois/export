@@ -17,29 +17,56 @@ alter table public.email_templates
   add column if not exists thumbnail_url text,
   add column if not exists usage_count int not null default 0;
 
--- Template blocks (drag-and-drop components) - extends table created in 00039
--- Re-point template_id FK from email_templates_enhanced to email_templates
-alter table public.email_template_blocks
-  drop constraint if exists email_template_blocks_template_id_fkey;
-alter table public.email_template_blocks
-  add constraint email_template_blocks_template_id_fkey
-  foreign key (template_id) references public.email_templates (id) on delete cascade;
+-- Template blocks (drag-and-drop components)
+-- Creates the table if absent; if present from 00039, re-points the FK away
+-- from email_templates_enhanced onto email_templates.
+create table if not exists public.email_template_blocks (
+  id uuid primary key default gen_random_uuid(),
+  template_id uuid not null references public.email_templates (id) on delete cascade,
+  block_type text not null check (block_type in ('text', 'image', 'button', 'divider', 'spacer', 'social', 'cta', 'html', 'personalization')),
+  position int not null default 0,
+  config jsonb not null default '{}'::jsonb,
+  content jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
 
--- Ensure allowed block_type values (00039 created this as plain text)
+-- If the table already existed (e.g. created by 00039 referencing
+-- email_templates_enhanced), drop that FK and re-point to email_templates.
 do $$
 begin
-  alter table public.email_template_blocks
-    drop constraint if exists email_template_blocks_block_type_check;
-exception when others then null;
+  if exists (
+    select 1 from pg_constraint c
+    join pg_class t on t.oid = c.conrelid
+    join pg_namespace n on n.oid = t.relnamespace
+    where n.nspname = 'public' and t.relname = 'email_template_blocks'
+      and c.conname = 'email_template_blocks_template_id_fkey'
+      and c.confrelid <> 'public.email_templates'::regclass
+  ) then
+    alter table public.email_template_blocks
+      drop constraint email_template_blocks_template_id_fkey;
+    alter table public.email_template_blocks
+      add constraint email_template_blocks_template_id_fkey
+      foreign key (template_id) references public.email_templates (id) on delete cascade;
+  end if;
 end;
 $$;
 
+-- Ensure allowed block_type values (00039 created this as plain text without a check)
 do $$
 begin
-  alter table public.email_template_blocks
-    add constraint email_template_blocks_block_type_check
-    check (block_type in ('text', 'image', 'button', 'divider', 'spacer', 'social', 'cta', 'html', 'personalization'));
-exception when duplicate_object then null;
+  if not exists (
+    select 1 from pg_constraint c
+    join pg_class t on t.oid = c.conrelid
+    join pg_namespace n on n.oid = t.relnamespace
+    where n.nspname = 'public' and t.relname = 'email_template_blocks'
+      and c.conname = 'email_template_blocks_block_type_check'
+  ) then
+    alter table public.email_template_blocks
+      add constraint email_template_blocks_block_type_check
+      check (block_type in ('text', 'image', 'button', 'divider', 'spacer', 'social', 'cta', 'html', 'personalization'));
+  end if;
+exception when others then null;
 end;
 $$;
 
@@ -122,26 +149,26 @@ create policy email_template_blocks_delete_org on public.email_template_blocks
     )
   );
 
--- Template library: public read, org insert/update
+-- Template library: public read for authenticated, platform admin manages
 drop policy if exists template_library_select_public on public.template_library;
 create policy template_library_select_public on public.template_library
   for select using (is_public = true);
 
 drop policy if exists template_library_select_org on public.template_library;
 create policy template_library_select_org on public.template_library
-  for select using (is_org_member(organization_id));
+  for select using (auth.uid() is not null);
 
 drop policy if exists template_library_insert_org on public.template_library;
 create policy template_library_insert_org on public.template_library
-  for insert with check (is_org_member(organization_id));
+  for insert with check (auth.uid() is not null);
 
 drop policy if exists template_library_update_org on public.template_library;
 create policy template_library_update_org on public.template_library
-  for update using (is_org_member(organization_id));
+  for update using (is_platform_admin());
 
 drop policy if exists template_library_delete_org on public.template_library;
 create policy template_library_delete_org on public.template_library
-  for delete using (has_role(organization_id, 'manager'));
+  for delete using (is_platform_admin());
 
 -- Grants
 grant select, insert, update, delete on public.email_template_blocks to authenticated, service_role;

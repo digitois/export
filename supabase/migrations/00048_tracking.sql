@@ -211,15 +211,6 @@ begin
     v_html := v_html || '<img src="' || v_pixel_url || '" width="1" height="1" alt="" />';
   end if;
 
-  -- Rewrite links
-  for v_link_record in
-    select regexp_match(v_html, '(href\s*=\s*["\'])([^"\']+)(["\'])', 'g') as match
-  loop
-    -- This is simplified; production would use a proper HTML parser
-    -- For now, we'll create tracking links for all URLs found
-    continue;
-  end loop;
-
   return v_html;
 end;
 $$;
