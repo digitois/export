@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       }, { onConflict: 'organization_id,key' });
 
     if (error) return ok({ error: error.message }, { status: 400 });
-    return ok({ data: true });
+    return ok({ success: true });
   } catch (err) {
     return handleApiError(err);
   }

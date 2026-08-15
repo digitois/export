@@ -19,17 +19,15 @@ export async function GET(request: NextRequest) {
       ]);
       if (triggerRes.error) return ok({ error: triggerRes.error.message }, { status: 400 });
       return ok({
-        data: {
-          ...triggerRes.data,
-          stats: statsRes.data,
-          evaluations: evaluationsRes.data
-        }
+        ...triggerRes.data,
+        stats: statsRes.data,
+        evaluations: evaluationsRes.data
       });
     }
 
     const { data, error } = await listTriggers(ctx.supabase, ctx.organizationId);
     if (error) return ok({ error: error.message }, { status: 400 });
-    return ok({ data: data ?? [] });
+    return ok(data ?? []);
   } catch (err) {
     return handleApiError(err);
   }
@@ -45,7 +43,7 @@ export async function POST(request: NextRequest) {
     if (action === 'create') {
       const { data, error } = await createTrigger(ctx.supabase, ctx.organizationId, ctx.userId, body.input);
       if (error) return ok({ error: error.message }, { status: 400 });
-      return ok({ data });
+      return ok(data);
     }
 
     if (action === 'fire') {
@@ -57,7 +55,7 @@ export async function POST(request: NextRequest) {
         body.leadId,
         body.eventData ?? {}
       );
-      return ok({ data });
+      return ok(data);
     }
 
     return ok({ error: 'Unknown action' }, { status: 400 });
@@ -74,7 +72,7 @@ export async function PATCH(request: NextRequest) {
 
     const { data, error } = await updateTrigger(ctx.supabase, ctx.organizationId, body.id, body.updates);
     if (error) return ok({ error: error.message }, { status: 400 });
-    return ok({ data });
+    return ok(data);
   } catch (err) {
     return handleApiError(err);
   }
@@ -90,7 +88,7 @@ export async function DELETE(request: NextRequest) {
 
     const { error } = await deleteTrigger(ctx.supabase, ctx.organizationId, id);
     if (error) return ok({ error: error.message }, { status: 400 });
-    return ok({ data: true });
+    return ok({ success: true });
   } catch (err) {
     return handleApiError(err);
   }

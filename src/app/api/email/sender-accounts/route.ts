@@ -15,18 +15,18 @@ export async function GET(request: NextRequest) {
     if (action === 'gmail-auth-url') {
       const { data, error } = await getGmailAuthUrl(ctx.supabase, ctx.organizationId);
       if (error) return ok({ error: error.message }, { status: 400 });
-      return ok({ data });
+      return ok(data);
     }
 
     if (id) {
       const { data, error } = await getSenderAccount(ctx.supabase, ctx.organizationId, id);
       if (error) return ok({ error: error.message }, { status: 400 });
-      return ok({ data });
+      return ok(data);
     }
 
     const { data, error } = await listSenderAccounts(ctx.supabase, ctx.organizationId);
     if (error) return ok({ error: error.message }, { status: 400 });
-    return ok({ data: data ?? [] });
+    return ok(data ?? []);
   } catch (err) {
     return handleApiError(err);
   }
@@ -42,25 +42,25 @@ export async function POST(request: NextRequest) {
     if (action === 'ses') {
       const { data, error } = await createSESAccount(ctx.supabase, ctx.organizationId, ctx.userId, body.input);
       if (error) return ok({ error: error.message }, { status: 400 });
-      return ok({ data });
+      return ok(data);
     }
 
     if (action === 'gmail') {
       const { data, error } = await createGmailAccount(ctx.supabase, ctx.organizationId, ctx.userId, body.input);
       if (error) return ok({ error: error.message }, { status: 400 });
-      return ok({ data });
+      return ok(data);
     }
 
     if (action === 'test') {
       const { data, error } = await testSenderAccount(ctx.supabase, ctx.organizationId, body.accountId);
       if (error) return ok({ error: error.message }, { status: 400 });
-      return ok({ data });
+      return ok(data);
     }
 
     if (action === 'verify') {
       const { data, error } = await verifySenderAccount(ctx.supabase, ctx.organizationId, body.accountId);
       if (error) return ok({ error: error.message }, { status: 400 });
-      return ok({ data });
+      return ok(data);
     }
 
     return ok({ error: 'Unknown action' }, { status: 400 });
@@ -77,7 +77,7 @@ export async function PATCH(request: NextRequest) {
 
     const { data, error } = await updateSenderAccount(ctx.supabase, ctx.organizationId, body.id, body.updates);
     if (error) return ok({ error: error.message }, { status: 400 });
-    return ok({ data });
+    return ok(data);
   } catch (err) {
     return handleApiError(err);
   }
@@ -93,7 +93,7 @@ export async function DELETE(request: NextRequest) {
 
     const { error } = await deleteSenderAccount(ctx.supabase, ctx.organizationId, id);
     if (error) return ok({ error: error.message }, { status: 400 });
-    return ok({ data: true });
+    return ok({ success: true });
   } catch (err) {
     return handleApiError(err);
   }

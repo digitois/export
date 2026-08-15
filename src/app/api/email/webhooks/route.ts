@@ -18,18 +18,18 @@ export async function GET(request: NextRequest) {
         listWebhookDeliveries(ctx.supabase, ctx.organizationId, id)
       ]);
       if (endpointRes.error) return ok({ error: endpointRes.error.message }, { status: 400 });
-      return ok({ data: { ...endpointRes.data, deliveries: deliveriesRes.data } });
+      return ok({ ...endpointRes.data, deliveries: deliveriesRes.data });
     }
 
     if (id) {
       const { data, error } = await getWebhookEndpoint(ctx.supabase, ctx.organizationId, id);
       if (error) return ok({ error: error.message }, { status: 400 });
-      return ok({ data });
+      return ok(data);
     }
 
     const { data, error } = await listWebhookEndpoints(ctx.supabase, ctx.organizationId);
     if (error) return ok({ error: error.message }, { status: 400 });
-    return ok({ data: data ?? [] });
+    return ok(data ?? []);
   } catch (err) {
     return handleApiError(err);
   }
@@ -45,13 +45,13 @@ export async function POST(request: NextRequest) {
     if (action === 'create') {
       const { data, error } = await createWebhookEndpoint(ctx.supabase, ctx.organizationId, ctx.userId, body.input);
       if (error) return ok({ error: error.message }, { status: 400 });
-      return ok({ data });
+      return ok(data);
     }
 
     if (action === 'test') {
       const { data, error } = await testWebhookEndpoint(ctx.supabase, ctx.organizationId, body.endpointId);
       if (error) return ok({ error: error.message }, { status: 400 });
-      return ok({ data });
+      return ok(data);
     }
 
     return ok({ error: 'Unknown action' }, { status: 400 });
@@ -68,7 +68,7 @@ export async function PATCH(request: NextRequest) {
 
     const { data, error } = await updateWebhookEndpoint(ctx.supabase, ctx.organizationId, body.id, body.updates);
     if (error) return ok({ error: error.message }, { status: 400 });
-    return ok({ data });
+    return ok(data);
   } catch (err) {
     return handleApiError(err);
   }
@@ -84,7 +84,7 @@ export async function DELETE(request: NextRequest) {
 
     const { error } = await deleteWebhookEndpoint(ctx.supabase, ctx.organizationId, id);
     if (error) return ok({ error: error.message }, { status: 400 });
-    return ok({ data: true });
+    return ok({ success: true });
   } catch (err) {
     return handleApiError(err);
   }

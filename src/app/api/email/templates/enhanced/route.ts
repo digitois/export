@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
       return ok({ error: error.message }, { status: 400 });
     }
 
-    return ok({ data: data ?? [] });
+    return ok(data ?? []);
   } catch (err) {
     return handleApiError(err);
   }

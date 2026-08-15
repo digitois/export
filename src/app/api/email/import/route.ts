@@ -16,16 +16,16 @@ export async function GET(request: NextRequest) {
       if (errors) {
         const { data, error } = await getImportErrors(ctx.supabase, ctx.organizationId, jobId);
         if (error) return ok({ error: error.message }, { status: 400 });
-        return ok({ data });
+        return ok(data);
       }
       const { data, error } = await getImportJob(ctx.supabase, ctx.organizationId, jobId);
       if (error) return ok({ error: error.message }, { status: 400 });
-      return ok({ data });
+      return ok(data);
     }
 
     const { data, error } = await listImportJobs(ctx.supabase, ctx.organizationId);
     if (error) return ok({ error: error.message }, { status: 400 });
-    return ok({ data: data ?? [] });
+    return ok(data ?? []);
   } catch (err) {
     return handleApiError(err);
   }
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     if (action === 'create-job') {
       const { data, error } = await createImportJob(ctx.supabase, ctx.organizationId, ctx.userId, body.input);
       if (error) return ok({ error: error.message }, { status: 400 });
-      return ok({ data });
+      return ok(data);
     }
 
     if (action === 'run') {
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
         body.listId
       );
 
-      return ok({ data: { job, ...result } });
+      return ok({ job, ...result });
     }
 
     return ok({ error: 'Unknown action' }, { status: 400 });
@@ -79,7 +79,7 @@ export async function PATCH(request: NextRequest) {
 
     const { data, error } = await updateImportJob(ctx.supabase, ctx.organizationId, body.id, body.updates);
     if (error) return ok({ error: error.message }, { status: 400 });
-    return ok({ data });
+    return ok(data);
   } catch (err) {
     return handleApiError(err);
   }

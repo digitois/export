@@ -46,10 +46,11 @@ export default function EmailLogPage() {
     try {
       const query = eventFilter !== 'all' ? `?event=${eventFilter}` : '';
       const [logRes, statsRes] = await Promise.all([
-        api<{ data: ActivityRow[] }>(`/api/email/activity${query}`),
+        api<{ data: { items: ActivityRow[]; count: number } }>(`/api/email/activity${query}`),
         api<{ data: ActivityStats }>('/api/email/activity?scope=stats')
       ]);
-      setRows(logRes.data);
+      setRows(logRes.data.items);
+
       setStats(statsRes.data);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to load activity');

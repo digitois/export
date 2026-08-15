@@ -15,16 +15,16 @@ export async function GET(request: NextRequest) {
     if (templateId && withBlocks) {
       const { data, error } = await getTemplateWithBlocks(ctx.supabase, ctx.organizationId, templateId);
       if (error) return ok({ error: error.message }, { status: 400 });
-      return ok({ data });
+      return ok(data);
     }
 
     if (templateId) {
       const { data, error } = await listVariants(ctx.supabase, ctx.organizationId, templateId);
       if (error) return ok({ error: error.message }, { status: 400 });
-      return ok({ data: data ?? [] });
+      return ok(data ?? []);
     }
 
-    return ok({ data: [] });
+    return ok([]);
   } catch (err) {
     return handleApiError(err);
   }
@@ -46,25 +46,25 @@ export async function POST(request: NextRequest) {
         body.input
       );
       if (error) return ok({ error: error.message }, { status: 400 });
-      return ok({ data });
+      return ok(data);
     }
 
     if (action === 'create-block') {
       const { data, error } = await createBlock(ctx.supabase, body.templateId, body.input);
       if (error) return ok({ error: error.message }, { status: 400 });
-      return ok({ data });
+      return ok(data);
     }
 
     if (action === 'reorder-blocks') {
       const { error } = await reorderBlocks(ctx.supabase, body.templateId, body.blockIds);
       if (error) return ok({ error: error.message }, { status: 400 });
-      return ok({ data: true });
+      return ok({ success: true });
     }
 
     if (action === 'list-blocks') {
       const { data, error } = await listBlocks(ctx.supabase, body.templateId);
       if (error) return ok({ error: error.message }, { status: 400 });
-      return ok({ data: data ?? [] });
+      return ok(data ?? []);
     }
 
     return ok({ error: 'Unknown action' }, { status: 400 });
@@ -83,7 +83,7 @@ export async function PATCH(request: NextRequest) {
     if (action === 'update-block') {
       const { data, error } = await updateBlock(ctx.supabase, body.blockId, body.updates);
       if (error) return ok({ error: error.message }, { status: 400 });
-      return ok({ data });
+      return ok(data);
     }
 
     return ok({ error: 'Unknown action' }, { status: 400 });
@@ -102,7 +102,7 @@ export async function DELETE(request: NextRequest) {
 
     const { error } = await deleteBlock(ctx.supabase, blockId);
     if (error) return ok({ error: error.message }, { status: 400 });
-    return ok({ data: true });
+    return ok({ success: true });
   } catch (err) {
     return handleApiError(err);
   }

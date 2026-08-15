@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     if (contactId) {
       const { data, error } = await getContactTimeline(ctx.supabase, ctx.organizationId, contactId);
       if (error) return ok({ error: error.message }, { status: 400 });
-      return ok({ data });
+      return ok(data);
     }
 
     if (scope === 'stats') {
@@ -26,13 +26,13 @@ export async function GET(request: NextRequest) {
         searchParams.get('dateTo') ?? undefined
       );
       if (error) return ok({ error: error.message }, { status: 400 });
-      return ok({ data });
+      return ok(data);
     }
 
     if (scope === 'suppression') {
       const { data, error } = await checkSuppression(ctx.supabase, ctx.organizationId, searchParams.get('email') ?? '');
       if (error) return ok({ error: error.message }, { status: 400 });
-      return ok({ data });
+      return ok(data);
     }
 
     const { data, count, error } = await getActivityLog(ctx.supabase, {
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
       offset: searchParams.get('offset') ? Number(searchParams.get('offset')) : undefined
     });
     if (error) return ok({ error: error.message }, { status: 400 });
-    return ok({ data, count });
+    return ok({ items: data ?? [], count: count ?? 0 });
   } catch (err) {
     return handleApiError(err);
   }
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
         organization_id: ctx.organizationId
       });
       if (error) return ok({ error: error.message }, { status: 400 });
-      return ok({ data });
+      return ok(data);
     }
 
     return ok({ error: 'Unknown action' }, { status: 400 });

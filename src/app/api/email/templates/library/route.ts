@@ -13,12 +13,12 @@ export async function GET(request: NextRequest) {
     if (slug) {
       const { data, error } = await getLibraryTemplate(ctx.supabase, slug);
       if (error) return ok({ error: error.message }, { status: 400 });
-      return ok({ data });
+      return ok(data);
     }
 
     const { data, error } = await getLibraryTemplates(ctx.supabase, searchParams.get('category') ?? undefined);
     if (error) return ok({ error: error.message }, { status: 400 });
-    return ok({ data: data ?? [] });
+    return ok(data ?? []);
   } catch (err) {
     return handleApiError(err);
   }
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
         body.customName
       );
       if (error) return ok({ error: error.message }, { status: 400 });
-      return ok({ data });
+      return ok(data);
     }
 
     return ok({ error: 'Unknown action' }, { status: 400 });
